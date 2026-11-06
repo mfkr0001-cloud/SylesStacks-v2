@@ -1,0 +1,73 @@
+:root{color-scheme:dark;--bg:#090b13;--panel:#121827;--panel2:#192236;--line:#29334a;--muted:#9aa6bd;--purple:#986bff;--cyan:#62ddff;--green:#58d6a2;--danger:#ff7188;--radius:16px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 70% -10%,#39245c 0,transparent 42%),var(--bg);color:#f5f6ff;font:15px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+button,input,select{font:inherit}button{color:inherit;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.app{max-width:1080px;margin:auto;padding:18px 16px 104px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:11px}.logo{width:43px;height:43px;border-radius:14px;background:linear-gradient(145deg,#b18aff,#5630ae);display:grid;place-items:center;font-weight:950;font-size:19px;box-shadow:0 8px 28px #8054ff55}.brand strong{display:block;font-size:17px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:2px}.pill{border:1px solid #355443;background:#14251f;color:var(--green);border-radius:99px;padding:7px 10px;font-size:10px;font-weight:800;white-space:nowrap}
+.hero{border:1px solid #4a3674;border-radius:22px;padding:22px;background:linear-gradient(120deg,#261b43,#121a2b 75%);position:relative;overflow:hidden}.eyebrow{color:#c1a5ff;font-size:10px;letter-spacing:2px;font-weight:850}.hero h1{font-size:clamp(27px,7vw,39px);margin:9px 0}.hero p{color:#c0c8da;line-height:1.55;max-width:650px;margin:0 0 17px}.hero:after{content:"SS";position:absolute;right:10px;top:-38px;font-size:160px;font-weight:950;color:#fff;opacity:.035;pointer-events:none}
+.primary,.secondary,.tab,.fps,.navbtn{border-radius:12px;border:1px solid var(--line);padding:11px 14px;background:#202a40}.primary{background:linear-gradient(100deg,#986bff,#6845ce);border:0;font-weight:850}.secondary{font-weight:700}.danger{border-color:#754052;background:#38202b;color:#ffb0bf}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}
+.tabs{display:flex;gap:7px;overflow:auto;margin:16px 0 12px;padding-bottom:3px}.tab{white-space:nowrap;color:#b8c1d4;background:#141b2a;font-size:12px}.tab.active{background:#342450;border-color:#8d66dc;color:white}
+.page{display:none}.page.active{display:block;animation:fade .18s ease}.section{margin-top:20px}.head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:11px}.head h2{font-size:17px;margin:0}.muted{color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{background:linear-gradient(145deg,#161e30,#101624);border:1px solid var(--line);border-radius:16px;padding:15px;min-width:0}.metric{font-size:24px;font-weight:900;margin:5px 0}.metric-label{font-size:11px;color:var(--muted)}
+.game{display:flex;gap:12px;align-items:center}.art{width:52px;height:52px;flex:0 0 52px;border-radius:14px;display:grid;place-items:center;font-size:18px;font-weight:950;background:linear-gradient(145deg,#42618b,#1a263e)}.gameinfo{flex:1;min-width:0}.gameinfo b{display:block;overflow-wrap:anywhere}.gameinfo small{display:block;color:var(--muted);font-size:11px;line-height:1.4;margin-top:3px;overflow-wrap:anywhere}
+.fpsgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.fps{background:#192236;text-align:center;padding:13px 4px;font-weight:900}.fps small{display:block;color:var(--muted);font-size:10px;font-weight:500}.fps.selected{background:#39285d;border-color:#a47cff;box-shadow:inset 0 0 0 1px #a47cff}
+.setting{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.setting:last-child{border:0}.setting b{font-size:13px}.setting small{display:block;color:var(--muted);font-size:10px;margin-top:4px;line-height:1.4}
+.switch{width:43px;height:24px;flex:0 0 auto;border:0;border-radius:20px;background:#3a455b;padding:3px}.switch:after{content:"";display:block;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s}.switch.on{background:#7955d0}.switch.on:after{transform:translateX(19px)}
+.notice{background:#151e30;border:1px solid #34415b;border-radius:13px;padding:12px;color:#bbc5d9;font-size:11px;line-height:1.55}.note{margin-top:12px}
+.crossstage{height:180px;border:1px solid var(--line);border-radius:14px;background:radial-gradient(circle,#1c2940,#0c111d);display:grid;place-items:center;overflow:hidden}.crosshair{--cross-color:#62ddff;--cross-opacity:1;width:34px;height:34px;position:relative;filter:drop-shadow(0 0 5px var(--cross-color));opacity:var(--cross-opacity)}.crosshair:before,.crosshair:after{content:"";position:absolute;background:var(--cross-color)}.crosshair:before{width:2px;height:34px;left:16px}.crosshair:after{height:2px;width:34px;top:16px}.crosshair.dot:before{width:7px;height:7px;left:14px;top:14px;border-radius:50%}.crosshair.dot:after{display:none}.crosshair.circle{width:20px;height:20px;border:2px solid var(--cross-color);border-radius:50%}.crosshair.circle:before,.crosshair.circle:after{display:none}.crosshair.tshape:after{width:24px;left:5px}.crosshair.tshape:before{height:25px;left:16px;top:9px}.crosshair.xshape:before{transform:rotate(45deg)}.crosshair.xshape:after{transform:rotate(-45deg)}
+input[type=text],input[type=number],select{min-width:0;background:#0c1220;border:1px solid var(--line);border-radius:10px;color:white;padding:11px;max-width:100%}input[type=text]{flex:1}input[type=range]{accent-color:var(--purple);width:min(145px,38vw)}input[type=color]{background:transparent;border:0;width:42px;height:35px;padding:0}select{max-width:55%}.field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:130px}.field label{font-size:11px;color:var(--muted)}.field input,.field select{width:100%}
+.bottom{position:fixed;bottom:0;left:0;right:0;z-index:4;display:flex;justify-content:center;gap:4px;background:#0d1220ed;backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:8px 5px calc(8px + env(safe-area-inset-bottom))}.bottom button{background:transparent;border:0;color:#9da8be;border-radius:10px;min-width:52px;padding:6px 5px;font-size:10px;flex:1}.bottom button span{display:block;font-size:18px;margin-bottom:2px}.bottom button.active{background:#302248;color:white}
+.edge{position:fixed;right:0;top:43%;z-index:6;border:0;border-radius:12px 0 0 12px;background:#8056d5;padding:13px 8px;writing-mode:vertical-rl;font-size:10px;font-weight:900;letter-spacing:1px;box-shadow:0 4px 20px #0009}
+.shade{position:fixed;inset:0;background:#0009;z-index:7;display:none}.shade.show{display:block}.drawer{position:fixed;right:0;top:0;bottom:0;width:min(330px,88vw);z-index:8;background:#111827;border-left:1px solid var(--line);padding:20px;transform:translateX(105%);transition:.25s;overflow:auto}.drawer.open{transform:translateX(0)}.drawerhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.close{background:#273249;border:0;border-radius:9px;padding:8px 11px}
+.loading{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at center,#2a1a48,#090b13 68%);display:grid;place-items:center;text-align:center;transition:opacity .4s}.loading.hide{opacity:0;pointer-events:none}.loadmark{font-size:48px;font-weight:950;letter-spacing:3px}.bar{width:min(270px,75vw);height:7px;background:#302744;border-radius:9px;margin:20px auto 9px;overflow:hidden}.bar i{display:block;width:0;height:100%;background:linear-gradient(90deg,#9565ff,#61dcff);transition:width .13s}.toast{position:fixed;z-index:30;left:50%;bottom:83px;transform:translateX(-50%);background:#273249;border:1px solid #46536d;border-radius:11px;padding:10px 14px;font-size:11px;display:none;max-width:90%;text-align:center;box-shadow:0 8px 30px #0008}
+.listitem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}.listitem:last-child{border:0}.listitem .meta{min-width:0;flex:1}.listitem small{display:block;color:var(--muted);font-size:10px;overflow-wrap:anywhere}.tiny{padding:7px 9px;font-size:11px}.tag{display:inline-block;border:1px solid #3b4760;border-radius:99px;padding:4px 8px;color:#bfcbe0;font-size:10px}.empty{color:var(--muted);font-size:12px;padding:12px 0}.profile-preview{display:flex;align-items:center;gap:12px}.profile-preview .crosshair{flex:0 0 auto}
+@keyframes fade{from{opacity:.55;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media(min-width:720px){.app{padding-bottom:28px}.grid{grid-template-columns:repeat(4,1fr)}.bottom{position:static;border:1px solid var(--line);border-radius:14px;margin-top:18px;justify-content:flex-start}.bottom button{flex:0 1 100px}.edge{top:50%}}
+@media(max-width:390px){.app{padding-left:12px;padding-right:12px}.card{padding:12px}.bottom button{min-width:0;font-size:9px}.hero{padding:18px}.fpsgrid{gap:6px}.fps{padding:11px 2px}}
+
+/* SylesStacks v2.2 — desktop launcher inspired by Android emulator home screens */
+body{background:#080d26;color:#f5f6ff;overflow-x:hidden}
+.app{max-width:none;margin:0;padding:0 54px 20px 0;min-height:100vh}
+.emu-titlebar{height:34px;margin:0;padding:0 12px;display:flex;align-items:center;justify-content:space-between;background:#202640;border-bottom:1px solid #313955;position:relative;z-index:3}
+.emu-brand{display:flex;align-items:center;gap:8px;font-size:13px}
+.emu-logo{width:20px;height:20px;border-radius:6px;background:linear-gradient(145deg,#40d6b1,#3886e8);display:grid;place-items:center;font-size:12px;color:#fff}
+.emu-version{font-size:10px;color:#e28b9a}
+.emu-window-actions{display:flex;gap:2px}
+.emu-window-actions button{width:32px;height:28px;border:0;background:transparent;color:#cbd2e7;font-size:16px}
+.emu-window-actions button:hover{background:#3a4564}
+.emu-toolbar{position:fixed;right:0;top:34px;bottom:0;width:34px;z-index:9;background:#202640;border-left:1px solid #303956;display:flex;flex-direction:column;align-items:center;padding:4px 0;gap:3px}
+.emu-toolbar button{width:30px;height:30px;border:0;background:transparent;color:#aeb9d4;font-size:17px;border-radius:5px}
+.emu-toolbar button:hover{background:#394463;color:#fff}
+.toolbar-spacer{flex:1}
+.launcher-desktop{height:calc(100vh - 34px);min-height:540px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 80% 50%,#111b40 0%,transparent 50%),linear-gradient(135deg,#080d27,#090e2b 55%,#080d25)}
+.launcher-desktop:before{content:"";position:absolute;right:-110px;top:20%;width:520px;height:520px;border:38px solid #182344;transform:rotate(45deg);opacity:.22;pointer-events:none}
+.launcher-desktop:after{content:"";position:absolute;right:12%;bottom:-290px;width:600px;height:600px;background:#172344;transform:skew(-42deg);opacity:.24;pointer-events:none}
+.launcher-clock{position:absolute;right:20px;top:9px;font-size:18px;font-weight:600;color:#f3f5ff;z-index:1}
+.launcher-icons{position:relative;z-index:1;display:flex;gap:54px;padding:82px 7.8% 0}
+.launcher-app{width:116px;border:0;background:transparent;color:#f1f3fb;display:flex;flex-direction:column;align-items:center;gap:24px;padding:0 4px;font-size:14px}
+.launcher-app:hover .launcher-art{filter:brightness(1.16);transform:translateY(-2px)}
+.launcher-art{width:78px;height:78px;display:grid;place-items:center;transition:.15s}
+.play-art svg{width:76px;height:76px;filter:drop-shadow(0 4px 7px #0007)}
+.system-art{width:78px;height:78px;padding:8px;grid-template-columns:1fr 1fr;gap:4px;background:#222c49;border:1px solid #3b4767}
+.system-art span{width:27px;height:27px;border-radius:5px;background:#35435f;display:grid;place-items:center;font-size:17px}
+.launcher-hint{position:absolute;left:7.8%;bottom:24px;color:#657394;font-size:11px;letter-spacing:.5px;z-index:1}
+.bottom{position:fixed;left:12px;right:48px;bottom:10px;z-index:5;width:max-content;max-width:calc(100% - 70px);background:#151d35c9;border:1px solid #2d3959;border-radius:12px;backdrop-filter:blur(12px);padding:5px}
+.bottom button{min-width:58px;flex:0 0 68px}
+.page:not(#home){padding:18px 20px 100px;min-height:calc(100vh - 34px);background:#0a1024}
+.page:not(#home) .hero{background:linear-gradient(120deg,#1b2a50,#121a30);border-color:#34466d}
+.edge{right:36px}
+.drawer{z-index:12}
+.shade{z-index:11}
+.loading{z-index:20}
+@media(max-width:700px){
+ .app{padding-right:0;padding-bottom:0}
+ .emu-toolbar{display:none}
+ .launcher-desktop{height:calc(100dvh - 34px);min-height:500px}
+ .launcher-icons{padding:70px 18px 0;gap:18px;flex-wrap:wrap}
+ .launcher-app{width:100px;font-size:12px;gap:15px}
+ .launcher-art{width:68px;height:68px}
+ .play-art svg{width:66px;height:66px}
+ .bottom{position:fixed;left:5px;right:5px;bottom:5px;width:auto;max-width:none}
+ .bottom button{flex:1 1 0;min-width:0}
+ .page:not(#home){padding:12px 12px 100px}
+ .edge{right:0}
+}

@@ -1,0 +1,9 @@
+{
+  "games": [
+    {
+      "id": "standoff2",
+      "name": "Standoff 2",
+      "packageId": "com.axlebolt.standoff2"
+    }
+  ]
+}

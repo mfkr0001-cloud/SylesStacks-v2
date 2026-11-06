@@ -1,0 +1,11 @@
+{
+  "selectedFPS": "90",
+  "powerMode": "balanced",
+  "settings": {
+    "loading": true,
+    "animations": true,
+    "edgePanel": true,
+    "notifications": true,
+    "showProfile": true
+  }
+}

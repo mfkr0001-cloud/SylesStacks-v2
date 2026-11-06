@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090b13">
+<meta name="description" content="SylesStacks v2.3 — Android gaming hub">
+<title>SylesStacks v2.3</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+<div class="loading" id="loading"><div><div class="loadmark">SS<span style="color:#ae8aff">.</span></div><b style="letter-spacing:2px">SylesStacks v2.3</b><div class="bar"><i id="barfill"></i></div><small id="loadlabel" style="color:#aeb7ca">Запуск интерфейса · 0%</small></div></div>
+<div class="app">
+<header class="emu-titlebar">
+ <div class="emu-brand"><div class="emu-logo">◆</div><strong>SylesStacks</strong><span class="emu-version">v2.3 Beta</span></div>
+ <div class="emu-window-actions"><button title="Свернуть" aria-label="Свернуть">－</button><button title="Развернуть" aria-label="Развернуть">□</button><button title="Закрыть" aria-label="Закрыть">×</button></div>
+</header>
+
+<aside class="emu-toolbar" aria-label="Инструменты эмулятора">
+ <button onclick="toggleFullscreen()" title="Полный экран">⛶</button>
+ <button onclick="toast('Регулировка громкости появится в Android-модуле.')" title="Громкость вверх">🔊</button>
+ <button onclick="toast('Регулировка громкости появится в Android-модуле.')" title="Громкость вниз">🔉</button>
+ <button onclick="go('library')" title="Установить APK">⇩</button>
+ <button onclick="go('performance')" title="Управление производительностью">⌁</button>
+ <button onclick="go('device')" title="Информация об устройстве">▣</button>
+ <button onclick="drawer()" title="Дополнительные инструменты">▤</button>
+ <span class="toolbar-spacer"></span>
+ <button onclick="go('settings')" title="Настройки">⚙</button>
+ <button onclick="history.back()" title="Назад">←</button>
+ <button onclick="go('home')" title="Главная">⌂</button>
+</aside>
+<section class="page active" id="home">
+ <div class="launcher-desktop">
+  <div class="launcher-clock" id="launcherClock">12:00</div>
+  <div class="launcher-icons">
+   <button class="launcher-app" onclick="openStore()">
+    <span class="launcher-art play-art"><svg viewBox="0 0 64 64" aria-hidden="true"><path fill="#20c5e8" d="M9 5c-2 1-3 3-3 6v42c0 3 1 5 3 6l25-27z"/><path fill="#27cf79" d="M9 5l31 18-7 9z"/><path fill="#ffca38" d="M40 23l14 8c4 2 4 6 0 8l-14 8-7-15z"/><path fill="#f04b5d" d="M9 59l31-18-7-9z"/></svg></span>
+    <span>Play Store</span>
+   </button>
+   <button class="launcher-app" onclick="go('device')">
+    <span class="launcher-art system-art"><span>▧</span><span>🌐</span><span>📁</span><span>⚙</span></span>
+    <span>System apps</span>
+   </button>
+  </div>
+  <div class="launcher-hint">Добро пожаловать в SylesStacks</div>
+ </div>
+</section>
+
+<section class="page" id="services">
+ <div class="head section"><h2>Google Play и Android-сервисы</h2><span class="tag">Проверка интеграции</span></div>
+ <div class="card">
+  <div class="game"><div class="art" style="background:#183c35">▶</div><div class="gameinfo"><b>Google Play Store</b><small>Настоящий магазин приложений требует Android-среду с лицензированными Google Mobile Services.</small></div><span class="tag">Не подключён</span></div>
+  <div class="setting"><div><b>Google Play Services (GMS)</b><small>Системные службы Google в Android-образе</small></div><span class="tag">Нет Android-модуля</span></div>
+  <div class="setting"><div><b>Вход в Google аккаунт</b><small>Авторизация должна выполняться системным Google-компонентом, не HTML-формой</small></div><span class="tag">Недоступно</span></div>
+  <div class="setting"><div><b>Установка приложений из Play</b><small>Требуется совместимая Android-среда и поддержка GMS</small></div><span class="tag">Недоступно</span></div>
+ </div>
+ <div class="notice note"><b>Почему пока не работает:</b> эта сборка — HTML-интерфейс/лаунчер, а не виртуальная машина Android. Веб-страница не может безопасно создать системный Google-вход, установить Play Services или запускать Android APK. Не вводи пароль Google в сторонние HTML-формы. Для настоящего Play Store понадобится отдельный Android runtime/APK-модуль и совместимый, лицензированный образ GMS.</div>
+ <div class="row" style="margin-top:12px"><button class="secondary" onclick="go('home')">← На рабочий стол</button><button class="secondary" onclick="go('device')">Проверить устройство</button></div>
+</section>
+
+<section class="page" id="library">
+ <div class="head section"><h2>Библиотека игр</h2><span class="muted" id="libraryCount">0 игр</span></div>
+ <div class="card"><b>Добавить игру</b><p class="muted">Название и Android Package ID. Например: com.example.game. Список хранится на этом устройстве в браузере.</p>
+  <div class="row" style="margin-top:10px"><div class="field"><label for="newgame">Название игры</label><input id="newgame" type="text" maxlength="48" placeholder="Например, Standoff 2"></div><div class="field"><label for="newpackage">Android Package ID</label><input id="newpackage" type="text" maxlength="120" placeholder="com.axlebolt.standoff2"></div></div>
+  <div class="row" style="margin-top:10px"><button class="primary" onclick="addGame()">＋ Добавить игру</button><button class="secondary" onclick="addDefaultGame()">Добавить Standoff 2</button></div>
+ </div>
+ <div class="section card"><div class="head"><h2>Мои игры</h2><span class="muted">Сохранённый список</span></div><div id="games"></div></div>
+ <div class="notice note">Кнопка «Запуск» пока не вызывает Android Activity: браузер не имеет надёжного доступа к списку установленных приложений. Package ID сохранён для будущего нативного Android-моста. Наличие игры на телефоне проверит уже APK-оболочка.</div>
+</section>
+
+<section class="page" id="performance">
+ <div class="head section"><h2>Производительность</h2><span class="muted">Настраиваемые предпочтения</span></div>
+ <div class="card"><b>Профиль производительности</b><p class="muted">Сохраняемое предпочтение для будущей Android-части. Сам HTML не меняет режим питания телефона.</p><div class="fpsgrid" id="powerModes"></div>
+ <div class="setting"><div><b>Целевой лимит FPS</b><small>Выбранное значение, не гарантия реальной частоты кадров</small></div><select id="fpsSelect" onchange="setFPS(this.value)"><option>60</option><option>90</option><option>120</option><option>240</option><option>360</option><option>480</option><option value="Unlimited">Без лимита</option></select></div>
+ <div class="setting"><div><b>Показывать выбранный профиль</b><small>Отображается в обзоре приложения</small></div><button class="switch on" data-setting="showProfile" aria-label="Показывать профиль"></button></div>
+ </div>
+ <div class="section card"><div class="head"><h2>Диагностика браузера</h2><button class="secondary tiny" onclick="refreshDeviceInfo()">Обновить</button></div><div id="deviceInfo"></div></div>
+ <div class="notice note">Режимы 240–480 FPS и «без лимита» — только целевые значения интерфейса. Фактическая частота зависит от дисплея, игры, Android, драйверов и охлаждения. Здесь не выполняется разгон.</div>
+</section>
+
+<section class="page" id="crosshair">
+ <div class="head section"><h2>Редактор прицела</h2><span class="muted">Локальный предпросмотр</span></div>
+ <div class="card"><div class="crossstage"><div class="crosshair" id="cross"></div></div>
+ <div class="setting"><div><b>Форма</b><small>Вариант прицела</small></div><select id="shape" onchange="updateCross()"><option value="plus">Крест</option><option value="dot">Точка</option><option value="circle">Круг</option><option value="tshape">Т-образный</option><option value="xshape">Диагональный</option></select></div>
+ <div class="setting"><div><b>Размер</b><small><span id="sizeValue">34</span> px предпросмотра</small></div><input id="size" type="range" min="10" max="60" value="34" oninput="updateCross()"></div>
+ <div class="setting"><div><b>Цвет</b><small>Цвет линий прицела</small></div><input id="color" type="color" value="#62ddff" oninput="updateCross()"></div>
+ <div class="setting"><div><b>Прозрачность</b><small><span id="opacityValue">100</span>%</small></div><input id="opacity" type="range" min="10" max="100" value="100" oninput="updateCross()"></div>
+ <div class="row" style="margin-top:12px"><button class="primary" onclick="saveCrossProfile()">Сохранить профиль</button><button class="secondary" onclick="resetCrossEditor()">Сбросить редактор</button></div>
+ </div>
+ <div class="section card"><div class="head"><h2>Профили прицела</h2><span class="muted">Сохранённые варианты</span></div><div id="crossProfiles"></div></div>
+ <div class="notice note">Прицел отображается только внутри этой HTML-страницы. Отдельный Android Overlay потребует нативный сервис, разрешение «Поверх других приложений» и проверку совместимости с правилами конкретной игры.</div>
+</section>
+
+<section class="page" id="gameprofiles">
+ <div class="head section"><h2>Профили игр</h2><span class="muted">Настройки для каждой игры</span></div>
+ <div class="card"><p class="muted">Можно сохранить предпочтительный FPS и режим производительности для игры из библиотеки.</p><div class="field"><label for="profileGame">Игра</label><select id="profileGame"></select></div><div class="row" style="margin-top:10px"><div class="field"><label for="profileFps">Целевой FPS</label><select id="profileFps"><option>60</option><option>90</option><option>120</option><option>240</option><option>360</option><option>480</option><option value="Unlimited">Без лимита</option></select></div><div class="field"><label for="profilePower">Режим</label><select id="profilePower"><option value="balanced">Сбалансированный</option><option value="saving">Экономия энергии</option><option value="performance">Производительный</option></select></div></div><button class="primary" style="margin-top:12px" onclick="saveGameProfile()">Сохранить профиль игры</button></div>
+ <div class="section card"><div class="head"><h2>Сохранённые профили</h2></div><div id="gameProfiles"></div></div>
+</section>
+
+<section class="page" id="settings">
+ <div class="head section"><h2>Настройки</h2></div><div class="card">
+ <div class="setting"><div><b>Экран загрузки</b><small>Показывать при старте страницы</small></div><button class="switch on" data-setting="loading"></button></div>
+ <div class="setting"><div><b>Анимации</b><small>Плавные переходы интерфейса</small></div><button class="switch on" data-setting="animations"></button></div>
+ <div class="setting"><div><b>Краевая панель</b><small>Быстрый доступ к функциям</small></div><button class="switch on" data-setting="edgePanel"></button></div>
+ <div class="setting"><div><b>Уведомления</b><small>Показывать сообщения внутри приложения</small></div><button class="switch on" data-setting="notifications"></button></div>
+ <div class="setting"><div><b>Показывать выбранный профиль</b><small>Информация на главном экране</small></div><button class="switch on" data-setting="showProfile"></button></div>
+ </div>
+ <div class="section card"><div class="head"><h2>Резервная копия</h2></div><p class="muted">Экспортируй все игры, профили и настройки в JSON. Импорт заменит текущие локальные данные после подтверждения.</p><div class="row"><button class="primary" onclick="exportData()">Экспорт JSON</button><button class="secondary" onclick="document.getElementById('importFile').click()">Импорт JSON</button><input id="importFile" type="file" accept="application/json,.json" hidden onchange="importData(event)"></div><div class="row" style="margin-top:10px"><button class="secondary danger" onclick="resetAll()">Сбросить все данные</button></div></div>
+ <div class="notice note">Данные хранятся в localStorage текущего браузера/WebView. При очистке данных приложения или удалении браузерного хранилища они могут быть потеряны — делай JSON-экспорт для резервной копии.</div>
+</section>
+
+<section class="page" id="device">
+ <div class="head section"><h2>Устройство и функции</h2><span class="muted">Диагностика доступности</span></div>
+ <div class="card"><div id="deviceDetails"></div></div>
+ <div class="section card"><h2 style="font-size:16px;margin:0 0 10px">Статус возможностей</h2><div class="setting"><div><b>localStorage</b><small>Сохранение настроек</small></div><span class="tag" id="storageStatus">Проверка</span></div><div class="setting"><div><b>Web Share API</b><small>Системное меню отправки файла, если поддерживается</small></div><span class="tag" id="shareStatus">Проверка</span></div><div class="setting"><div><b>Android запуск игр</b><small>Требуется нативный мост</small></div><span class="tag">Не подключено</span></div><div class="setting"><div><b>Системный FPS и температура</b><small>Требуются Android API / производительский интерфейс</small></div><span class="tag">Нет доступа</span></div><div class="setting"><div><b>Оверлей прицела</b><small>Требуется Android overlay service</small></div><span class="tag">Не подключено</span></div></div>
+</section>
+
+<nav class="bottom">
+ <button class="active" data-go="home"><span>⌂</span>Главная</button><button data-go="library"><span>▦</span>Игры</button><button data-go="performance"><span>◈</span>FPS</button><button data-go="crosshair"><span>⊕</span>Прицел</button><button data-go="settings"><span>⚙</span>Настройки</button>
+</nav>
+</div>
+<button class="edge" id="edgeButton" onclick="drawer()">БЫСТРОЕ МЕНЮ</button><div class="shade" id="shade" onclick="drawer()"></div>
+<aside class="drawer" id="drawer"><div class="drawerhead"><b>Быстрый доступ</b><button class="close" onclick="drawer()">✕</button></div>
+<div class="setting"><b>Производительность</b><button class="secondary tiny" onclick="drawer();go('performance')">Открыть</button></div>
+<div class="setting"><b>Редактор прицела</b><button class="secondary tiny" onclick="drawer();go('crosshair')">Открыть</button></div>
+<div class="setting"><b>Библиотека игр</b><button class="secondary tiny" onclick="drawer();go('library')">Открыть</button></div>
+<div class="setting"><b>Профили игр</b><button class="secondary tiny" onclick="drawer();go('gameprofiles')">Открыть</button></div>
+<div class="setting"><b>Информация об устройстве</b><button class="secondary tiny" onclick="drawer();go('device')">Открыть</button></div>
+<p class="muted">Нативные Android-функции появятся после подключения APK-модуля.</p></aside>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
