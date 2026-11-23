@@ -67,7 +67,7 @@ class MainActivity : Activity() {
         searchField = EditText(this).apply {
             hint = "Поиск приложений"
             textSize = 15f
-            singleLine = true
+            setSingleLine(true)
             setTextColor(Color.WHITE)
             setHintTextColor(Color.rgb(145, 151, 176))
             background = rounded(panelColor, 14)
