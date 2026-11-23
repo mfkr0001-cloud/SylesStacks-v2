@@ -1,2 +1,407 @@
-/* Дополнительные адаптивные правила. Основная адаптивная вёрстка уже есть в style.css. */
-@media (max-width: 360px) { .app { min-width: 0; } }
+/* SylesStacks v2.3 — BlueStacks-inspired fallback layout.
+   Full replacement for: css/responsive.css
+   Loaded after style.css, themes.css and animations.css. */
+
+:root {
+  color-scheme: dark;
+  --bg: #080d25;
+  --panel: #151d35;
+  --line: #303a5a;
+  --muted: #aeb9d4;
+  --accent: #8b72df;
+  --text: #f4f6ff;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--text);
+  background: #080d25;
+  font-family: Arial, system-ui, sans-serif;
+}
+button, input, select { font: inherit; }
+button { color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid #8bbcff;
+  outline-offset: 2px;
+}
+.app {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0 48px 24px 0;
+}
+
+/* Emulator-like top bar */
+.emu-titlebar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  margin: 0;
+  padding: 0 12px;
+  background: #202640;
+  border-bottom: 1px solid #303955;
+}
+.emu-brand { display: flex; align-items: center; gap: 9px; font-size: 14px; }
+.emu-brand strong { font-weight: 600; }
+.emu-logo {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  border-radius: 6px;
+  color: white;
+  background: linear-gradient(145deg, #45d6b5, #3885e8);
+}
+.emu-version { color: #c5cbe0; font-size: 10px; }
+.emu-window-actions { display: flex; align-items: center; gap: 3px; }
+.emu-window-actions button {
+  width: 34px;
+  height: 30px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #cbd2e7;
+  font-size: 17px;
+}
+.emu-window-actions button:hover { background: #3b4665; }
+
+/* Right-side emulator toolbar */
+.emu-toolbar {
+  position: fixed;
+  z-index: 10;
+  top: 40px;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  width: 42px;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 4px;
+  border-left: 1px solid #303955;
+  background: #202640;
+}
+.emu-toolbar button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #b6c0da;
+  font-size: 18px;
+}
+.emu-toolbar button:hover { color: #fff; background: #394463; }
+.toolbar-spacer { flex: 1; }
+
+/* Main desktop / Android launcher surface */
+.page { display: none; }
+.page.active { display: block; }
+#home { padding: 0; background: #080d25; }
+.launcher-desktop {
+  position: relative;
+  isolation: isolate;
+  min-height: 560px;
+  height: calc(100vh - 40px);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 78% 40%, rgba(29, 43, 87, .56), transparent 48%),
+    linear-gradient(135deg, #080d27 0%, #090e2b 58%, #080d25 100%);
+}
+.launcher-desktop::before {
+  position: absolute;
+  z-index: -1;
+  top: 16%;
+  right: -140px;
+  width: 560px;
+  height: 560px;
+  border: 38px solid rgba(42, 57, 99, .35);
+  content: "";
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+.launcher-desktop::after {
+  position: absolute;
+  z-index: -1;
+  right: 12%;
+  bottom: -310px;
+  width: 650px;
+  height: 650px;
+  background: rgba(39, 53, 91, .34);
+  content: "";
+  transform: skew(-42deg);
+  pointer-events: none;
+}
+.launcher-clock {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  z-index: 2;
+  color: #f5f6ff;
+  font-size: 18px;
+  font-weight: 600;
+}
+.launcher-icons {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 46px;
+  padding: 110px 8% 0;
+}
+.launcher-app {
+  display: flex;
+  width: 116px;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: #f2f4ff;
+  font-size: 14px;
+  text-align: center;
+}
+.launcher-art {
+  display: grid;
+  width: 78px;
+  height: 78px;
+  place-items: center;
+  transition: transform .15s ease, filter .15s ease;
+}
+.launcher-app:hover .launcher-art { filter: brightness(1.16); transform: translateY(-2px); }
+.play-art svg { width: 76px; height: 76px; filter: drop-shadow(0 4px 7px #0008); }
+.system-art {
+  display: grid;
+  width: 78px;
+  height: 78px;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid #3b4767;
+  background: #222c49;
+}
+.system-art span {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 5px;
+  background: #35435f;
+  font-size: 17px;
+}
+.launcher-hint {
+  position: absolute;
+  z-index: 2;
+  bottom: 26px;
+  left: 8%;
+  color: #7583a5;
+  font-size: 12px;
+}
+
+/* Existing navigation remains functional */
+.emu-toolbar button, .bottom button, .launcher-app { -webkit-tap-highlight-color: transparent; }
+.bottom {
+  position: fixed;
+  z-index: 6;
+  right: 58px;
+  bottom: 12px;
+  left: 14px;
+  display: flex;
+  width: max-content;
+  max-width: calc(100% - 82px);
+  justify-content: flex-start;
+  gap: 5px;
+  padding: 6px;
+  border: 1px solid #303b5b;
+  border-radius: 12px;
+  background: rgba(21, 29, 53, .88);
+  backdrop-filter: blur(14px);
+}
+.bottom button {
+  flex: 0 0 76px;
+  min-width: 58px;
+  padding: 7px 5px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #aeb9d4;
+  font-size: 10px;
+}
+.bottom button span { display: block; margin-bottom: 3px; font-size: 19px; }
+.bottom button.active { background: #3a315f; color: #fff; }
+
+/* Other app sections */
+.page:not(#home) {
+  min-height: calc(100vh - 40px);
+  padding: 22px 24px 110px;
+  background: #0a1024;
+}
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.head h2 { margin: 0; color: #f4f6ff; font-size: 19px; }
+.section { margin-top: 20px; }
+.card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #303a59;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #17213a, #10182b);
+}
+.muted, .gameinfo small, .setting small { color: #aeb9d4; }
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid #303a59;
+}
+.setting:last-child { border-bottom: 0; }
+.setting b { font-size: 13px; }
+.setting small { display: block; margin-top: 4px; font-size: 11px; line-height: 1.45; }
+.notice {
+  padding: 13px;
+  border: 1px solid #34415f;
+  border-radius: 12px;
+  background: #151f35;
+  color: #c0cbe0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.primary, .secondary, .fps {
+  padding: 10px 14px;
+  border: 1px solid #3a4666;
+  border-radius: 10px;
+  background: #202c49;
+  color: #f4f6ff;
+}
+.primary { border: 0; background: linear-gradient(100deg, #8668df, #5b50b6); font-weight: 700; }
+.secondary { font-weight: 600; }
+.danger { border-color: #754052; background: #38202b; color: #ffb0bf; }
+.tiny { padding: 7px 9px; font-size: 11px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.field { display: flex; min-width: 130px; flex: 1; flex-direction: column; gap: 6px; }
+.field label { color: #aeb9d4; font-size: 11px; }
+input[type="text"], input[type="number"], select {
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #35415f;
+  border-radius: 9px;
+  background: #0c1428;
+  color: #f4f6ff;
+}
+.field input, .field select { width: 100%; }
+input[type="range"] { width: min(150px, 38vw); accent-color: #9b83ee; }
+input[type="color"] { width: 42px; height: 35px; padding: 0; border: 0; background: transparent; }
+.fpsgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0; }
+.fps { padding: 12px 4px; font-weight: 800; }
+.fps small { display: block; color: #aeb9d4; font-size: 10px; font-weight: 400; }
+.fps.selected { border-color: #a38aff; background: #3b2e63; }
+.switch { width: 43px; height: 24px; flex: 0 0 auto; padding: 3px; border: 0; border-radius: 20px; background: #3a455b; }
+.switch::after { display: block; width: 18px; height: 18px; border-radius: 50%; background: #fff; content: ""; transition: transform .2s; }
+.switch.on { background: #7955d0; }
+.switch.on::after { transform: translateX(19px); }
+.game { display: flex; align-items: center; gap: 12px; }
+.gameinfo { min-width: 0; flex: 1; }
+.gameinfo b { display: block; overflow-wrap: anywhere; }
+.gameinfo small { display: block; margin-top: 4px; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+.art { display: grid; width: 52px; height: 52px; flex: 0 0 52px; place-items: center; border-radius: 12px; background: #263b62; }
+.listitem { display: flex; align-items: center; justify-content: space-between; gap: 9px; padding: 10px 0; border-bottom: 1px solid #303a59; }
+.listitem:last-child { border-bottom: 0; }
+.listitem .meta { min-width: 0; flex: 1; }
+.listitem small { display: block; color: #aeb9d4; font-size: 10px; overflow-wrap: anywhere; }
+.tag { display: inline-block; padding: 4px 8px; border: 1px solid #3b4760; border-radius: 99px; color: #c5cee1; font-size: 10px; }
+.empty { padding: 12px 0; color: #aeb9d4; font-size: 12px; }
+.crossstage { display: grid; height: 180px; place-items: center; overflow: hidden; border: 1px solid #303a59; border-radius: 13px; background: radial-gradient(circle, #1c2940, #0c111d); }
+.crosshair { --cross-color: #62ddff; --cross-opacity: 1; position: relative; width: 34px; height: 34px; opacity: var(--cross-opacity); filter: drop-shadow(0 0 5px var(--cross-color)); }
+.crosshair::before, .crosshair::after { position: absolute; background: var(--cross-color); content: ""; }
+.crosshair::before { left: 16px; width: 2px; height: 34px; }
+.crosshair::after { top: 16px; width: 34px; height: 2px; }
+.crosshair.dot::before { top: 14px; left: 14px; width: 7px; height: 7px; border-radius: 50%; }
+.crosshair.dot::after, .crosshair.circle::before, .crosshair.circle::after { display: none; }
+.crosshair.circle { width: 20px; height: 20px; border: 2px solid var(--cross-color); border-radius: 50%; }
+.crosshair.tshape::after { left: 5px; width: 24px; }
+.crosshair.tshape::before { top: 9px; left: 16px; height: 25px; }
+.crosshair.xshape::before { transform: rotate(45deg); }
+.crosshair.xshape::after { transform: rotate(-45deg); }
+.profile-preview { display: flex; align-items: center; gap: 12px; }
+.toast { position: fixed; z-index: 30; bottom: 82px; left: 50%; display: none; max-width: 90%; padding: 10px 14px; transform: translateX(-50%); border: 1px solid #46536d; border-radius: 11px; background: #273249; color: #fff; font-size: 11px; text-align: center; }
+.edge {
+  position: fixed;
+  z-index: 7;
+  top: 43%;
+  right: 44px;
+  padding: 13px 8px;
+  border: 0;
+  border-radius: 10px 0 0 10px;
+  background: #7657c7;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  writing-mode: vertical-rl;
+}
+.shade { position: fixed; z-index: 11; inset: 0; display: none; background: #0009; }
+.shade.show { display: block; }
+.drawer {
+  position: fixed;
+  z-index: 12;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(340px, 88vw);
+  overflow: auto;
+  padding: 20px;
+  transform: translateX(105%);
+  border-left: 1px solid #303a59;
+  background: #111a2e;
+  transition: transform .25s;
+}
+.drawer.open { transform: translateX(0); }
+.drawerhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.close { padding: 8px 11px; border: 0; border-radius: 8px; background: #273249; color: white; }
+.loading {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at center, #202b50, #080d25 68%);
+  text-align: center;
+  transition: opacity .4s;
+}
+.loading.hide { opacity: 0; pointer-events: none; }
+.loadmark { font-size: 48px; font-weight: 900; letter-spacing: 3px; }
+.bar { width: min(270px, 75vw); height: 7px; margin: 20px auto 9px; overflow: hidden; border-radius: 9px; background: #303b5b; }
+.bar i { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #9565ff, #61dcff); transition: width .13s; }
+
+@media (max-width: 700px) {
+  .app { padding: 0 0 8px; }
+  .emu-toolbar { display: none; }
+  .launcher-desktop { height: calc(100dvh - 40px); min-height: 500px; }
+  .launcher-icons { gap: 22px; padding: 80px 18px 0; }
+  .launcher-app { width: 94px; gap: 12px; font-size: 12px; }
+  .launcher-art, .system-art { width: 68px; height: 68px; }
+  .play-art svg { width: 66px; height: 66px; }
+  .bottom { right: 5px; bottom: 5px; left: 5px; width: auto; max-width: none; }
+  .bottom button { min-width: 0; flex: 1 1 0; }
+  .page:not(#home) { padding: 14px 12px 100px; }
+  .edge { right: 0; }
+}
+@media (max-width: 390px) {
+  .launcher-icons { gap: 10px; padding-left: 12px; }
+  .launcher-app { width: 84px; }
+  .card { padding: 12px; }
+  .bottom button { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
