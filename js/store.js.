@@ -63,6 +63,7 @@ const STORE_ITEMS = [
 let storeCategory = 'all';
 let storeQuery = '';
 let storeSelected = null;
+let storeInitialized = false;
 
 function storeEscape(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({
@@ -75,15 +76,15 @@ function storeEscape(value) {
 }
 
 function setStoreCategory(category) {
-  if (!['all', 'games', 'apps', 'popular'].includes(category)) return;
+  const allowed = ['all', 'games', 'apps', 'popular'];
+  if (!allowed.includes(category)) return;
 
   storeCategory = category;
 
   document.querySelectorAll('[data-store-category]').forEach(button => {
-    button.classList.toggle(
-      'active',
-      button.dataset.storeCategory === category
-    );
+    const active = button.dataset.storeCategory === category;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
   });
 
   const heading = document.getElementById('storeHeading');
@@ -99,6 +100,7 @@ function setStoreCategory(category) {
     heading.textContent = names[category];
   }
 
+  closeStoreDetail();
   renderStore();
 }
 
@@ -111,12 +113,12 @@ function renderStore() {
   let items = STORE_ITEMS.filter(item => {
     const categoryMatch =
       storeCategory === 'all' ||
-      storeCategory === 'popular' ||
-      item.category === storeCategory;
+      item.category === storeCategory ||
+      (storeCategory === 'popular' && Number(item.rating) >= 4.3);
 
     const searchMatch =
       !query ||
-      (item.name + ' ' + item.dev + ' ' + item.label)
+      (item.name + ' ' + item.dev + ' ' + item.label + ' ' + item.description)
         .toLowerCase()
         .includes(query);
 
@@ -127,12 +129,13 @@ function renderStore() {
     items = items.filter(item => Number(item.rating) >= 4.3);
   }
 
-  grid.innerHTML = '';
+  grid.replaceChildren();
 
   items.forEach(item => {
     const card = document.createElement('button');
     card.className = 'store-card';
     card.type = 'button';
+    card.dataset.storeItem = item.id;
 
     card.innerHTML =
       '<span class="store-app-icon" style="background:' +
@@ -144,7 +147,6 @@ function renderStore() {
       ' · ' + storeEscape(item.label) + '</span>' +
       '</span><span class="store-card-arrow">›</span>';
 
-    card.addEventListener('click', () => showStoreDetail(item.id));
     grid.appendChild(card);
   });
 
@@ -174,7 +176,7 @@ function showStoreDetail(id) {
     '<p>' + storeEscape(item.dev) + '</p>' +
     '<p>★ ' + item.rating + ' · ' +
     storeEscape(item.label) + '</p></div></div>' +
-    '<button class="store-install" onclick="openOfficialStore()">' +
+    '<button class="store-install" type="button" onclick="openOfficialStore()">' +
     'Открыть в Google Play</button>' +
     '<div class="detail-screens">' +
     '<div>' + storeEscape(item.icon) + '</div>' +
@@ -206,26 +208,60 @@ function openOfficialStore() {
     'https://play.google.com/store/apps/details?id=' +
     encodeURIComponent(storeSelected.pkg);
 
-  window.open(url, '_blank', 'noopener');
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function initStore() {
+  if (storeInitialized) return;
+
+  const grid = document.getElementById('storeGrid');
+  if (!grid) return;
+
+  storeInitialized = true;
+
   const search = document.getElementById('storeSearch');
 
   if (search) {
     search.addEventListener('input', () => {
       storeQuery = search.value;
+      closeStoreDetail();
       renderStore();
     });
   }
 
+  document.addEventListener('click', event => {
+    const tab = event.target.closest('[data-store-category]');
+
+    if (tab) {
+      event.preventDefault();
+      setStoreCategory(tab.dataset.storeCategory);
+      return;
+    }
+
+    const card = event.target.closest('[data-store-item]');
+
+    if (card) {
+      showStoreDetail(card.dataset.storeItem);
+      return;
+    }
+
+    const back = event.target.closest('.store-back');
+
+    if (back) {
+      event.preventDefault();
+      closeStoreDetail();
+    }
+  }, true);
+
   document.querySelectorAll('[data-store-category]').forEach(button => {
-    button.addEventListener('click', () => {
-      setStoreCategory(button.dataset.storeCategory);
-    });
+    button.type = 'button';
   });
 
-  renderStore();
+  setStoreCategory('all');
 }
 
-document.addEventListener('DOMContentLoaded', initStore);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initStore, { once: true });
+} else {
+  initStore();
+}
