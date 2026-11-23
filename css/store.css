@@ -1,0 +1,321 @@
+
+/* SylesStacks Play Market */
+.store-page {
+  color: #f4f6ff;
+}
+
+.store-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.store-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.store-mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #28b982;
+  font-size: 22px;
+}
+
+.store-brand b {
+  display: block;
+  font-size: 19px;
+}
+
+.store-brand small {
+  color: #aeb9d4;
+  font-size: 11px;
+}
+
+.store-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(520px, 60%);
+  padding: 0 16px;
+  border: 1px solid #35415f;
+  border-radius: 30px;
+  background: #17213a;
+}
+
+.store-search input {
+  width: 100%;
+  padding: 13px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: white;
+}
+
+.store-tabs {
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #303a59;
+}
+
+.store-tabs button {
+  flex: 0 0 auto;
+  padding: 10px 17px;
+  border: 1px solid #35415f;
+  border-radius: 25px;
+  background: #151f35;
+  color: #c5cee1;
+}
+
+.store-tabs button.active {
+  background: #245440;
+  border-color: #8ee8bd;
+  color: white;
+}
+
+.store-section-head {
+  margin: 22px 0 14px;
+}
+
+.store-section-head h2 {
+  margin: 0;
+  font-size: 21px;
+}
+
+.store-section-head p {
+  color: #aeb9d4;
+  font-size: 11px;
+}
+
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+}
+
+.store-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: white;
+  text-align: left;
+}
+
+.store-card:hover {
+  border-color: #354766;
+  background: #151f35;
+}
+
+.store-app-icon {
+  display: grid;
+  width: 55px;
+  height: 55px;
+  flex: 0 0 55px;
+  place-items: center;
+  border-radius: 15px;
+  font-size: 25px;
+  box-shadow: 0 4px 12px #0005;
+}
+
+.store-card-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.store-card-info b {
+  font-size: 13px;
+}
+
+.store-card-info small,
+.store-rating {
+  color: #aeb9d4;
+  font-size: 10px;
+}
+
+.store-card-arrow {
+  margin-left: auto;
+  font-size: 22px;
+}
+
+.store-feature {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 170px;
+  margin-bottom: 22px;
+  padding: 22px;
+  border: 1px solid #355c60;
+  border-radius: 18px;
+  background: linear-gradient(110deg, #1c493f, #172d49);
+}
+
+.feature-copy h2 {
+  font-size: 23px;
+}
+
+.feature-copy p {
+  color: #d0d9e9;
+  font-size: 12px;
+}
+
+.feature-copy button,
+.store-install {
+  padding: 11px 17px;
+  border: 0;
+  border-radius: 25px;
+  background: #b9edcf;
+  color: #143b2b;
+  font-weight: bold;
+}
+
+.feature-orb {
+  display: grid;
+  width: 90px;
+  height: 90px;
+  place-items: center;
+  border-radius: 25px;
+  background: linear-gradient(145deg, #5be0a1, #3d9be4);
+  font-size: 38px;
+}
+
+.store-empty {
+  padding: 25px;
+  color: #aeb9d4;
+  text-align: center;
+}
+
+.store-footnote {
+  margin-top: 20px;
+  color: #8795b2;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.store-detail {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  min-height: 100%;
+  padding: 20px;
+  background: #0a1024;
+}
+
+.store-detail[hidden],
+.store-feature[hidden] {
+  display: none !important;
+}
+
+.store-detail-back {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.store-detail-back button {
+  padding: 9px 14px;
+  border: 1px solid #35415f;
+  border-radius: 10px;
+  background: #17213a;
+  color: white;
+}
+
+.detail-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.store-app-icon.large {
+  width: 85px;
+  height: 85px;
+  flex-basis: 85px;
+  font-size: 36px;
+}
+
+.detail-hero h1 {
+  font-size: 23px;
+}
+
+.detail-hero p,
+.detail-description,
+.detail-note {
+  color: #bac6dd;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.store-install {
+  width: min(340px, 100%);
+  margin: 22px 0;
+}
+
+.detail-screens {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.detail-screens div {
+  display: grid;
+  min-height: 100px;
+  place-items: center;
+  border: 1px solid #35415f;
+  border-radius: 14px;
+  background: #17213a;
+  font-size: 28px;
+}
+
+.detail-meta {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px;
+  padding: 15px 0;
+  border-top: 1px solid #303a59;
+}
+
+.detail-meta span {
+  color: #93a1bd;
+}
+
+.detail-meta b {
+  overflow-wrap: anywhere;
+}
+
+@media(max-width:700px) {
+  .store-top {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .store-search {
+    width: 100%;
+  }
+
+  .store-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .store-feature {
+    min-height: 150px;
+    padding: 15px;
+  }
+
+  .store-detail {
+    padding: 13px;
+  }
+}
