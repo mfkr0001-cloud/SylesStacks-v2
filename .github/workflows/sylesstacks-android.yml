@@ -33,17 +33,31 @@ jobs:
 
       - name: Prepare APK ZIP
         run: |
-          mkdir -p release
+          set -e
+
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
 
           if [ ! -f "$APK" ]; then
             echo "ERROR: APK not found!"
+            find android/app/build/outputs -type f
             exit 1
           fi
 
+          mkdir -p release
           cp "$APK" release/SylesStacks-Mobile.apk
+
           cd release
           zip -j SylesStacks-Mobile-APK.zip SylesStacks-Mobile.apk
+
+          echo "ZIP CONTENTS:"
+          unzip -l SylesStacks-Mobile-APK.zip
+
+          unzip -t SylesStacks-Mobile-APK.zip
+          
+          if ! unzip -Z1 SylesStacks-Mobile-APK.zip | grep -qx "SylesStacks-Mobile.apk"; then
+            echo "ERROR: APK missing from ZIP!"
+            exit 1
+          fi
 
       - name: Upload APK ZIP
         uses: actions/upload-artifact@v4
@@ -51,3 +65,4 @@ jobs:
           name: SylesStacks-Mobile-APK
           path: release/SylesStacks-Mobile-APK.zip
           if-no-files-found: error
+          compression-level: 0
