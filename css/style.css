@@ -71,3 +71,68 @@ body{background:#080d26;color:#f5f6ff;overflow-x:hidden}
  .page:not(#home){padding:12px 12px 100px}
  .edge{right:0}
 }
+
+/* SylesStacks v2.3 — Android installed game icons */
+.launcher-icons{
+ flex-wrap:wrap;
+ align-content:flex-start;
+}
+
+.launcher-app.native-game-app{
+ width:116px;
+ min-height:112px;
+ gap:13px;
+ padding:0 5px;
+}
+
+.native-game-art{
+ width:78px;
+ height:78px;
+ overflow:hidden;
+ border-radius:17px;
+ background:#1b2742;
+ box-shadow:0 5px 16px #0006;
+}
+
+.native-game-art img{
+ display:block;
+ width:100%;
+ height:100%;
+ object-fit:cover;
+ border-radius:inherit;
+}
+
+.native-game-label{
+ display:block;
+ width:100%;
+ color:#f1f3fb;
+ font-size:13px;
+ line-height:1.3;
+ text-align:center;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+ text-shadow:0 2px 5px #000a;
+}
+
+.launcher-app.native-game-app:active .native-game-art{
+ transform:scale(.94);
+}
+
+@media(max-width:700px){
+ .launcher-app.native-game-app{
+  width:100px;
+  min-height:94px;
+  gap:10px;
+ }
+
+ .native-game-art{
+  width:68px;
+  height:68px;
+  border-radius:15px;
+ }
+
+ .native-game-label{
+  font-size:11px;
+ }
+}
