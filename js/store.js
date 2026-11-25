@@ -1,4 +1,4 @@
- 
+
 "use strict";
 
 (() => {
@@ -19,154 +19,155 @@
       "<": "&lt;",
       ">": "&gt;",
       '"': "&quot;",
-      "'": "&#39;"
-    }[char]));
+      "'": "&#039;"
+    })[char]);
   }
 
   function formatSize(bytes) {
-    const size = Number(bytes) || 0;
+    const size = Number(bytes || 0);
 
-    if (size >= 1024 * 1024 * 1024) {
-      return (size / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+    if (!size) return "Размер неизвестен";
+    if (size < 1024 * 1024) {
+      return Math.round(size / 1024) + " КБ";
     }
 
-    if (size >= 1024 * 1024) {
-      return (size / (1024 * 1024)).toFixed(1) + " MB";
-    }
-
-    return Math.round(size / 1024) + " KB";
+    return (size / (1024 * 1024)).toFixed(1) + " МБ";
   }
 
   function getDownloadUrl(app) {
-    const candidates = [
-      app.downloadUrl,
-      app.download_url,
-      app.apkUrl,
-      app.apk_url,
-      app.url,
-      app.asset?.browser_download_url,
-      app.asset?.url
-    ];
+    const url = String(app.downloadUrl || app.url || "").trim();
 
-    for (const candidate of candidates) {
-      if (typeof candidate !== "string" || !candidate.trim()) continue;
+    if (/^https:\/\/[^\s]+$/i.test(url)) {
+      return url;
+    }
 
-      try {
-        const url = new URL(candidate.trim());
-        if (url.protocol === "https:") return url.href;
-      } catch (error) {
-        console.warn("Некорректная ссылка загрузки:", candidate);
-      }
+    if (app.packageId) {
+      return "https://play.google.com/store/apps/details?id=" +
+        encodeURIComponent(app.packageId);
     }
 
     return "";
   }
 
+  function showMessage(message) {
+    if (typeof window.toast === "function") {
+      window.toast(message);
+      return;
+    }
+
+    console.log("[SylesStacks Store]", message);
+  }
+
   function getCategory(app) {
     const text = (
-      (app.name || "") + " " +
-      (app.description || "") + " " +
-      (app.fileName || "")
+      String(app.category || "") + " " +
+      String(app.type || "") + " " +
+      String(app.name || "") + " " +
+      String(app.description || "")
     ).toLowerCase();
 
-    const gameWords = [
-      "game", "игра", "standoff", "brawl",
-      "minecraft", "roblox", "pubg", "mobile legends"
-    ];
-
-    return gameWords.some(word => text.includes(word))
-      ? "games"
-      : "apps";
-  }
-
-  function showMessage(message, isError = false) {
-    const root = $("storeGrid");
-    if (!root) return;
-
-    root.innerHTML =
-      '<div class="store-empty">' +
-      '<h3>' +
-      escapeHTML(isError ? "Не удалось загрузить каталог" : "Загрузка") +
-      '</h3>' +
-      '<p>' + escapeHTML(message) + '</p>' +
-      '</div>';
-  }
-
-  async function loadCatalog() {
-    showMessage("Подключаемся к серверу...");
-
-    try {
-      const response = await fetch(API_URL, {
-        method: "GET",
-        headers: { "Accept": "application/json" },
-        cache: "no-store"
-      });
-
-      if (!response.ok) {
-        throw new Error("Ошибка сервера: " + response.status);
-      }
-
-      const result = await response.json();
-
-      if (!result || result.ok !== true || !Array.isArray(result.apps)) {
-        throw new Error("Сервер вернул неверный формат каталога.");
-      }
-
-      catalog = result.apps.map(app => ({
-        ...app,
-        category: getCategory(app)
-      }));
-
-      renderCatalog();
-
-    } catch (error) {
-      console.error("SylesStacks Store:", error);
-
-      showMessage(
-        "Проверь подключение к интернету и доступность Render.",
-        true
-      );
-
-      const root = $("storeGrid");
-
-      if (root) {
-        const button = document.createElement("button");
-        button.className = "store-back";
-        button.type = "button";
-        button.textContent = "Повторить загрузку";
-        button.addEventListener("click", loadCatalog);
-        root.appendChild(button);
-      }
+    if (
+      text.includes("game") ||
+      text.includes("игр") ||
+      text.includes("standoff") ||
+      text.includes("brawl") ||
+      text.includes("minecraft")
+    ) {
+      return "games";
     }
+
+    return "apps";
+  }
+
+  function installStoreStyles() {
+    if ($("sylesstacks-store-download-styles")) return;
+
+    const style = document.createElement("style");
+    style.id = "sylesstacks-store-download-styles";
+
+    style.textContent = [
+      "#storeGrid .store-app-row {",
+      "display:flex;align-items:center;gap:14px;",
+      "padding:14px;margin-bottom:12px;",
+      "border:1px solid rgba(255,255,255,.08);",
+      "border-radius:16px;",
+      "background:rgba(255,255,255,.035);",
+      "}",
+      "#storeGrid .store-app-icon {",
+      "width:58px;height:58px;flex:0 0 58px;",
+      "display:grid;place-items:center;",
+      "border-radius:14px;overflow:hidden;",
+      "background:#20263a;font-size:25px;",
+      "}",
+      "#storeGrid .store-app-icon img {",
+      "width:100%;height:100%;object-fit:cover;",
+      "}",
+      "#storeGrid .store-app-info {",
+      "flex:1;min-width:0;",
+      "}",
+      "#storeGrid .store-app-info h3 {",
+      "margin:0 0 5px;font-size:15px;",
+      "}",
+      "#storeGrid .store-app-info p {",
+      "margin:0;font-size:12px;opacity:.7;",
+      "}",
+      "#storeGrid .store-download {",
+      "border:0;border-radius:11px;padding:10px 15px;",
+      "background:#9b79ff;color:white;",
+      "font-weight:700;cursor:pointer;",
+      "text-decoration:none;white-space:nowrap;",
+      "}",
+      "#storeGrid .store-download:active {",
+      "transform:scale(.96);",
+      "}",
+      ".store-detail-content { padding:18px 0; }",
+      ".store-detail-icon {",
+      "width:86px;height:86px;object-fit:cover;",
+      "border-radius:20px;background:#20263a;",
+      "}",
+      ".store-detail-download {",
+      "display:inline-block;margin-top:15px;",
+      "padding:13px 22px;border-radius:12px;",
+      "background:#9b79ff;color:white;",
+      "text-decoration:none;font-weight:700;",
+      "}",
+      ".store-error {",
+      "padding:18px;border-radius:14px;",
+      "background:rgba(255,90,90,.08);",
+      "color:#ffaaaa;",
+      "}"
+    ].join("\n");
+
+    document.head.appendChild(style);
   }
 
   function getFilteredApps() {
     let result = [...catalog];
 
     if (activeCategory === "games") {
-      result = result.filter(app => app.category === "games");
-    } else if (activeCategory === "apps") {
-      result = result.filter(app => app.category === "apps");
-    } else if (activeCategory === "popular") {
-      result.sort((a, b) =>
-        (Number(b.downloads) || 0) -
-        (Number(a.downloads) || 0)
+      result = result.filter(app => getCategory(app) === "games");
+    }
+
+    if (activeCategory === "apps") {
+      result = result.filter(app => getCategory(app) === "apps");
+    }
+
+    if (activeCategory === "popular") {
+      result = result.filter(app =>
+        Number(app.downloads || 0) > 0 ||
+        app.popular === true ||
+        app.featured === true
       );
     }
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
 
-      result = result.filter(app => {
-        const text = [
-          app.name,
-          app.description,
-          app.version,
-          app.fileName
-        ].join(" ").toLowerCase();
-
-        return text.includes(query);
-      });
+      result = result.filter(app =>
+        String(app.name || "").toLowerCase().includes(query) ||
+        String(app.description || "").toLowerCase().includes(query) ||
+        String(app.category || "").toLowerCase().includes(query)
+      );
     }
 
     return result;
@@ -176,85 +177,68 @@
     const url = getDownloadUrl(app);
 
     if (!url) {
-      const disabled = document.createElement("button");
-      disabled.type = "button";
-      disabled.className = "store-download-disabled";
-      disabled.disabled = true;
-      disabled.textContent = "⚠ Ссылка на APK отсутствует";
-      return disabled;
+      return '<span class="store-download">Нет ссылки</span>';
     }
 
-    const link = document.createElement("a");
-    link.className = "store-download-button";
-    link.href = url;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.textContent = "⬇ Скачать APK";
-    link.setAttribute("aria-label", "Скачать " + (app.name || "APK"));
-
-    return link;
+    return '<a class="store-download" href="' +
+      escapeHTML(url) +
+      '" target="_blank" rel="noopener noreferrer" download>Скачать</a>';
   }
 
   function renderCatalog() {
-    const root = $("storeGrid");
+    const grid = $("storeGrid");
     const empty = $("storeEmpty");
 
-    if (!root) return;
-
-    root.innerHTML = "";
+    if (!grid) return;
 
     const apps = getFilteredApps();
 
-    if (empty) empty.hidden = apps.length > 0;
-
     if (!apps.length) {
-      root.innerHTML =
-        '<div class="store-empty">' +
-        '<h3>Приложений пока нет</h3>' +
-        '<p>Попробуй изменить поиск или категорию.</p>' +
-        '</div>';
+      grid.innerHTML = "";
+      if (empty) empty.hidden = false;
       return;
     }
 
-    apps.forEach(app => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "store-app-row";
+    if (empty) empty.hidden = true;
 
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "store-card";
+    grid.innerHTML = apps.map((app, index) => {
+      const name = escapeHTML(app.name || "Без названия");
+      const description = escapeHTML(
+        app.description || "Описание отсутствует"
+      );
+      const version = escapeHTML(app.version || "Неизвестно");
+      const size = formatSize(app.size);
+      const image = app.icon || app.image || "";
 
-      const icon = document.createElement("span");
-      icon.className = "store-app-icon";
-      icon.textContent = app.category === "games" ? "🎮" : "📦";
+      return `
+        <article class="store-app-row" data-app-index="${index}">
+          <div class="store-app-icon">
+            ${
+              image
+                ? '<img src="' + escapeHTML(image) + '" alt="">'
+                : "📦"
+            }
+          </div>
+          <div class="store-app-info">
+            <h3>${name}</h3>
+            <p>${description}</p>
+            <p>Версия ${version} · ${size}</p>
+          </div>
+          ${createDownloadButton(app)}
+          <button class="secondary tiny store-details-button"
+            type="button" data-details-index="${index}">
+            Подробнее
+          </button>
+        </article>
+      `;
+    }).join("");
 
-      const info = document.createElement("span");
-      info.className = "store-card-info";
-
-      const name = document.createElement("b");
-      name.textContent = app.name || "Без названия";
-
-      const version = document.createElement("small");
-      version.textContent = "Версия " + (app.version || "latest");
-
-      const rating = document.createElement("span");
-      rating.className = "store-rating";
-      rating.textContent =
-        formatSize(app.size) + " · " +
-        (Number(app.downloads) || 0) + " загрузок";
-
-      info.append(name, version, rating);
-
-      const arrow = document.createElement("span");
-      arrow.className = "store-card-arrow";
-      arrow.textContent = "›";
-
-      card.append(icon, info, arrow);
-
-      card.addEventListener("click", () => openDetails(app));
-
-      wrapper.append(card, createDownloadButton(app));
-      root.appendChild(wrapper);
+    grid.querySelectorAll("[data-details-index]").forEach(button => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.detailsIndex);
+        const app = apps[index];
+        if (app) openDetails(app);
+      });
     });
   }
 
@@ -266,57 +250,53 @@
 
     if (!detail || !content) return;
 
-    const icon = app.category === "games" ? "🎮" : "📦";
+    const image = app.icon || app.image || "";
+    const url = getDownloadUrl(app);
 
     content.innerHTML = `
-      <div class="detail-hero">
-        <div class="store-app-icon large">${icon}</div>
-        <div>
-          <h1>${escapeHTML(app.name || "Без названия")}</h1>
-          <p>Версия ${escapeHTML(app.version || "latest")}</p>
-          <p>${escapeHTML(formatSize(app.size))}</p>
-        </div>
+      <div class="store-detail-content">
+        ${
+          image
+            ? '<img class="store-detail-icon" src="' +
+              escapeHTML(image) + '" alt="">'
+            : '<div class="store-detail-icon">📦</div>'
+        }
+        <h2>${escapeHTML(app.name || "Без названия")}</h2>
+        <p>${escapeHTML(app.description || "Описание отсутствует")}</p>
+        <p>Версия: ${escapeHTML(app.version || "Неизвестно")}</p>
+        <p>Размер: ${formatSize(app.size)}</p>
+        <p>Загрузок: ${Number(app.downloads || 0)}</p>
+        ${
+          url
+            ? '<a class="store-detail-download" href="' +
+              escapeHTML(url) +
+              '" target="_blank" rel="noopener noreferrer">Скачать приложение</a>'
+            : "<p>Ссылка на загрузку отсутствует.</p>"
+        }
       </div>
-
-      <p class="detail-description">
-        ${escapeHTML(app.description || "Описание отсутствует.")}
-      </p>
-
-      <div class="detail-meta">
-        <span>Имя файла</span>
-        <b>${escapeHTML(app.fileName || "Не указано")}</b>
-        <span>Загрузки</span>
-        <b>${Number(app.downloads) || 0}</b>
-        <span>Репозиторий</span>
-        <b>${escapeHTML(app.repository || "Не указан")}</b>
-      </div>
-
-      <div id="storeDetailDownload"></div>
-
-      <p class="detail-note">
-        Скачивай APK только из источников, которым доверяешь.
-      </p>
-
-      <button type="button" class="store-back" id="storeDetailBack">
-        ← Назад к каталогу
-      </button>
     `;
-
-    const downloadContainer = $("storeDetailDownload");
-
-    if (downloadContainer) {
-      downloadContainer.appendChild(createDownloadButton(app));
-    }
 
     detail.hidden = false;
 
-    const back = $("storeDetailBack");
-    if (back) back.addEventListener("click", closeDetails);
+    const catalogPage = $("storeCatalogPage");
+    const myAppsPage = $("storeMyAppsPage");
+
+    if (catalogPage) catalogPage.hidden = true;
+    if (myAppsPage) myAppsPage.hidden = true;
   }
 
   function closeDetails() {
     const detail = $("storeDetail");
     if (detail) detail.hidden = true;
+
+    if (activeTab === "apps") {
+      const page = $("storeMyAppsPage");
+      if (page) page.hidden = false;
+    } else {
+      const page = $("storeCatalogPage");
+      if (page) page.hidden = false;
+    }
+
     selectedApp = null;
   }
 
@@ -327,12 +307,15 @@
     const myAppsPage = $("storeMyAppsPage");
     const detail = $("storeDetail");
 
+    if (detail) detail.hidden = true;
     if (catalogPage) catalogPage.hidden = tab !== "store";
     if (myAppsPage) myAppsPage.hidden = tab !== "apps";
-    if (detail) detail.hidden = true;
 
     document.querySelectorAll("[data-store-main]").forEach(button => {
-      button.classList.toggle("active", button.dataset.storeMain === tab);
+      button.classList.toggle(
+        "active",
+        button.dataset.storeMain === tab
+      );
     });
 
     if (tab === "apps") renderMyApps();
@@ -340,67 +323,108 @@
 
   function getLocalGames() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 
-      const data = JSON.parse(raw);
-      return Array.isArray(data.games) ? data.games : [];
+      if (Array.isArray(data.games)) return data.games;
+      if (Array.isArray(data.apps)) return data.apps;
 
+      return [];
     } catch (error) {
-      console.warn("Не удалось прочитать библиотеку игр:", error);
+      console.warn("Не удалось прочитать библиотеку:", error);
       return [];
     }
   }
 
   function renderMyApps() {
-    const root = $("storeMyAppsList");
-    if (!root) return;
-
-    root.innerHTML = "";
+    const list = $("storeMyAppsList");
+    if (!list) return;
 
     const games = getLocalGames();
 
     if (!games.length) {
-      root.innerHTML =
-        '<div class="store-empty">' +
-        '<h3>Библиотека пуста</h3>' +
-        '<p>Добавленные тобой игры появятся здесь.</p>' +
-        '</div>';
+      list.innerHTML = `
+        <div class="store-empty">
+          <span>📱</span>
+          <h3>Пока нет приложений</h3>
+          <p>Добавь игру в библиотеку SylesStacks.</p>
+        </div>
+      `;
       return;
     }
 
-    games.forEach(game => {
-      const card = document.createElement("div");
-      card.className = "store-library-card";
+    list.innerHTML = games.map(game => `
+      <div class="store-app-row">
+        <div class="store-app-icon">🎮</div>
+        <div class="store-app-info">
+          <h3>${escapeHTML(game.name || "Без названия")}</h3>
+          <p>${escapeHTML(game.packageId || game.package || "")}</p>
+        </div>
+      </div>
+    `).join("");
+  }
 
-      const icon = document.createElement("span");
-      icon.className = "store-app-icon";
-      icon.textContent = "🎮";
+  async function loadCatalog() {
+    const grid = $("storeGrid");
+    if (!grid) return;
 
-      const meta = document.createElement("div");
-      meta.className = "store-library-meta";
+    grid.innerHTML = `
+      <div class="store-empty">
+        <span>⌛</span>
+        <h3>Загрузка каталога...</h3>
+        <p>Подключаемся к серверу.</p>
+      </div>
+    `;
 
-      const name = document.createElement("b");
-      name.textContent = game.name || "Без названия";
+    try {
+      const response = await fetch(API_URL, {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+        cache: "no-store"
+      });
 
-      const packageId = document.createElement("small");
-      packageId.textContent =
-        game.packageId || "Package ID не указан";
+      if (!response.ok) {
+        throw new Error("Сервер ответил: HTTP " + response.status);
+      }
 
-      meta.append(name, packageId);
-      card.append(icon, meta);
-      root.appendChild(card);
-    });
+      const data = await response.json();
+
+      if (!data || data.ok !== true || !Array.isArray(data.apps)) {
+        throw new Error("Сервер вернул неверный формат каталога");
+      }
+
+      catalog = data.apps;
+      renderCatalog();
+
+      console.log("SylesStacks Store: загружено приложений:", catalog.length);
+
+    } catch (error) {
+      console.error("Ошибка магазина:", error);
+
+      grid.innerHTML = `
+        <div class="store-error">
+          <h3>Не удалось загрузить магазин</h3>
+          <p>${escapeHTML(error.message)}</p>
+          <button class="secondary" id="storeRetry" type="button">
+            Повторить
+          </button>
+        </div>
+      `;
+
+      const retry = $("storeRetry");
+      if (retry) retry.addEventListener("click", loadCatalog);
+    }
   }
 
   function setupEvents() {
     document.querySelectorAll("[data-store-main]").forEach(button => {
-      button.addEventListener("click", () => showTab(button.dataset.storeMain));
+      button.addEventListener("click", () => {
+        showTab(button.dataset.storeMain);
+      });
     });
 
     document.querySelectorAll("[data-store-category]").forEach(button => {
       button.addEventListener("click", () => {
-        activeCategory = button.dataset.storeCategory || "all";
+        activeCategory = button.dataset.storeCategory;
 
         document.querySelectorAll("[data-store-category]").forEach(item => {
           item.classList.toggle("active", item === button);
@@ -419,18 +443,21 @@
       });
     }
 
-    window.addEventListener("storage", event => {
-      if (event.key === STORAGE_KEY && activeTab === "apps") {
-        renderMyApps();
-      }
-    });
+    const back = document.querySelector(".store-back");
+
+    if (back) {
+      back.addEventListener("click", closeDetails);
+    }
   }
 
   function init() {
     if (!$("storeGrid")) return;
 
+    installStoreStyles();
     setupEvents();
     loadCatalog();
+
+    console.log("SylesStacks Store: initialized");
   }
 
   if (document.readyState === "loading") {
