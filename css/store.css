@@ -1,363 +1,62 @@
 
-.store-page {
-  --ss-bg:#0c0f1c;
-  --ss-panel:#181d31;
-  --ss-accent:#7e5cff;
-  --ss-muted:#9ea4be;
-  color:#f7f7ff;
-  width:100%;
-  max-width:980px;
-  margin:auto;
-  position:relative;
-  padding:4px 0 24px;
+/* SylesStacks APK download buttons */
+
+.store-app-row {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
-.store-app-header {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  padding:8px 2px 18px;
+
+.store-app-row .store-card {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
 }
-.store-app-header h1 {
-  margin:3px 0 2px;
-  font-size:28px;
-  font-weight:900;
+
+.store-download-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 18px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #805cff, #5735ce);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 5;
 }
-.store-app-header p {
-  margin:0;
-  color:var(--ss-muted);
-  font-size:12px;
+
+.store-download-button:hover {
+  filter: brightness(1.12);
 }
-.store-app-kicker {
-  color:#b8aaff;
-  font-size:10px;
-  letter-spacing:2px;
-  font-weight:800;
+
+.store-download-disabled {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #555;
+  border-radius: 12px;
+  background: #333;
+  color: #ddd;
+  font-size: 14px;
+  font-weight: 700;
 }
-.store-header-mark {
-  display:grid;
-  place-items:center;
-  width:54px;
-  height:54px;
-  border-radius:17px;
-  background:linear-gradient(145deg,#9478ff,#6040d8);
-  font-size:19px;
-  font-weight:900;
-}
-.store-main-tabs {
-  display:flex;
-  gap:4px;
-  padding:4px;
-  margin-bottom:14px;
-  border:1px solid #292e49;
-  border-radius:15px;
-  background:var(--ss-panel);
-}
-.store-main-tabs button {
-  flex:1;
-  min-height:43px;
-  border:0;
-  border-radius:11px;
-  padding:9px 12px;
-  color:#c3c5d9;
-  background:transparent;
-  font-weight:800;
-  font-size:13px;
-}
-.store-main-tabs button.active {
-  background:var(--ss-accent);
-  color:white;
-}
-.store-search {
-  display:flex;
-  align-items:center;
-  gap:10px;
-  width:100%;
-  min-height:48px;
-  padding:0 15px;
-  border:1px solid #303650;
-  border-radius:14px;
-  background:var(--ss-panel);
-  box-sizing:border-box;
-  margin-bottom:17px;
-}
-.store-search>span {
-  color:#b7aaff;
-  font-size:24px;
-}
-.store-search input {
-  width:100%;
-  min-width:0;
-  border:0!important;
-  outline:0!important;
-  background:transparent!important;
-  color:#fff!important;
-  padding:12px 0!important;
-  box-shadow:none!important;
-  font-size:14px;
-}
-.store-search input::placeholder {
-  color:#9299b4;
-}
-.store-heading-row {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin:7px 2px 11px;
-}
-.store-heading-row h2 {
-  margin:0;
-  color:#fff;
-  font-size:20px;
-  font-weight:850;
-}
-.store-heading-row>span {
-  color:#9299b4;
-  font-size:11px;
-}
-.store-tabs {
-  display:flex;
-  gap:7px;
-  overflow-x:auto;
-  padding:0 0 12px;
-  margin-bottom:7px;
-  scrollbar-width:none;
-}
-.store-tabs::-webkit-scrollbar {
-  display:none;
-}
-.store-tabs button {
-  flex:0 0 auto;
-  min-height:36px;
-  padding:8px 14px;
-  border:1px solid #303650;
-  border-radius:20px;
-  background:#181d31;
-  color:#c4c7dc;
-  font-size:12px;
-  font-weight:700;
-}
-.store-tabs button.active {
-  background:#7e5cff;
-  border-color:#7e5cff;
-  color:#fff;
-}
-.store-grid {
-  display:grid;
-  grid-template-columns:1fr;
-  gap:8px;
-}
-.store-card {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  width:100%;
-  min-height:78px;
-  padding:11px 12px;
-  border:1px solid #252b43;
-  border-radius:15px;
-  background:#181d31;
-  color:#fff;
-  text-align:left;
-  cursor:pointer;
-}
-.store-card:hover {
-  border-color:#6652ba;
-  background:#202641;
-}
-.store-app-icon {
-  display:grid;
-  place-items:center;
-  width:54px;
-  height:54px;
-  flex:0 0 54px;
-  border-radius:14px;
-  font-size:25px;
-}
-.store-card-info {
-  display:flex;
-  min-width:0;
-  flex:1;
-  flex-direction:column;
-  gap:4px;
-}
-.store-card-info b {
-  font-size:14px;
-  line-height:1.25;
-  font-weight:800;
-}
-.store-card-info small {
-  color:var(--ss-muted);
-  font-size:11px;
-}
-.store-rating {
-  color:#cfc5ff;
-  font-size:10px;
-}
-.store-card-arrow {
-  margin-left:auto;
-  color:#9ea4be;
-  font-size:26px;
-}
-.store-empty {
-  padding:36px 15px;
-  color:var(--ss-muted);
-  text-align:center;
-}
-.store-empty h3 {
-  color:white;
-  font-size:16px;
-}
-.store-platform-note {
-  margin:0 0 13px;
-  padding:12px 13px;
-  border:1px solid #38345d;
-  border-radius:12px;
-  background:#19182d;
-  color:#bfc0d6;
-  font-size:11px;
-  line-height:1.55;
-}
-.store-myapps-list {
-  display:grid;
-  gap:8px;
-}
-.store-library-card {
-  display:flex;
-  align-items:center;
-  gap:11px;
-  padding:11px 12px;
-  border:1px solid #252b43;
-  border-radius:14px;
-  background:#181d31;
-}
-.store-library-meta {
-  flex:1;
-  min-width:0;
-}
-.store-library-meta b {
-  display:block;
-  color:white;
-  font-size:13px;
-}
-.store-library-meta small {
-  display:block;
-  margin-top:4px;
-  color:var(--ss-muted);
-  font-size:10px;
-  overflow-wrap:anywhere;
-}
-.store-library-card button {
-  border:0;
-  border-radius:9px;
-  padding:9px 12px;
-  color:#fff;
-  background:#7e5cff;
-  font-size:10px;
-  font-weight:800;
-}
-.store-detail {
-  position:absolute;
-  z-index:5;
-  inset:0;
-  min-height:100%;
-  padding:16px;
-  border:1px solid #303650;
-  border-radius:18px;
-  background:#0c0f1c;
-  box-sizing:border-box;
-  box-shadow:0 12px 40px #0009;
-}
-.store-detail[hidden],
-#storeCatalogPage[hidden],
-#storeMyAppsPage[hidden] {
-  display:none!important;
-}
-.store-back {
-  padding:8px 12px;
-  border:1px solid #363b58;
-  border-radius:10px;
-  background:#181d31;
-  color:#d2caff;
-  font-size:13px;
-  font-weight:700;
-}
-.detail-hero {
-  display:flex;
-  align-items:center;
-  gap:15px;
-  margin:18px 0;
-}
-.store-app-icon.large {
-  width:78px;
-  height:78px;
-  flex-basis:78px;
-  font-size:34px;
-  border-radius:18px;
-}
-.detail-hero h1 {
-  margin:0 0 5px;
-  color:#fff;
-  font-size:21px;
-}
-.detail-hero p {
-  margin:3px 0;
-  color:var(--ss-muted);
-  font-size:12px;
-}
-.detail-description,.detail-note {
-  color:#b9bfd4;
-  font-size:13px;
-  line-height:1.65;
-}
-.store-install {
-  width:100%;
-  min-height:45px;
-  margin:5px 0 17px;
-  border:0;
-  border-radius:12px;
-  background:#7e5cff;
-  color:#fff;
-  font-weight:850;
-  font-size:12px;
-}
-.detail-meta {
-  display:grid;
-  grid-template-columns:1fr;
-  gap:6px;
-  padding:13px 0;
-  border-top:1px solid #303650;
-}
-.detail-meta span {
-  margin-top:6px;
-  color:#9299b4;
-  font-size:10px;
-}
-.detail-meta b {
-  color:#f2f1ff;
-  font-size:12px;
-  overflow-wrap:anywhere;
-}
-.store-footer {
-  margin-top:20px;
-  padding:13px 2px 0;
-  border-top:1px solid #292e49;
-  color:#858da8;
-  font-size:10px;
-  line-height:1.55;
-}
-@media(min-width:760px) {
-  .store-grid {
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:9px;
-  }
-}
-@media(max-width:520px) {
-  .store-app-header h1 {
-    font-size:25px;
-  }
-  .store-grid {
-    grid-template-columns:1fr;
-  }
+
+#storeDetailContent .store-download-button {
+  margin: 20px 0;
 }
