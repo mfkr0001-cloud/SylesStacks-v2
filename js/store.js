@@ -37,6 +37,22 @@
     return Math.round(size / 1024) + " KB";
   }
 
+  function getDownloadUrl(app) {
+    const value = String(app.downloadUrl || "").trim();
+
+    if (!value) return "";
+
+    try {
+      const url = new URL(value);
+
+      if (url.protocol !== "https:") return "";
+
+      return url.href;
+    } catch {
+      return "";
+    }
+  }
+
   function getCategory(app) {
     const text = (
       (app.name || "") + " " +
@@ -215,6 +231,44 @@
     if (!detail || !content) return;
 
     const icon = app.category === "games" ? "🎮" : "📦";
+    const downloadUrl = getDownloadUrl(app);
+
+    const downloadButton = downloadUrl
+      ? `
+        <a
+          class="primary store-download-button"
+          href="${escapeHTML(downloadUrl)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          style="
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:100%;
+            box-sizing:border-box;
+            margin-top:20px;
+            padding:15px 20px;
+            border-radius:12px;
+            text-decoration:none;
+            font-weight:700;
+            text-align:center;
+          "
+        >⬇ Скачать APK</a>
+        <p class="detail-note">
+          После скачивания открой APK на Android и следуй инструкциям установки.
+        </p>
+      `
+      : `
+        <button
+          class="primary"
+          type="button"
+          disabled
+          style="width:100%;margin-top:20px;opacity:.55"
+        >Ссылка на APK пока недоступна</button>
+        <p class="detail-note">
+          Для этой игры сервер пока не передал downloadUrl.
+        </p>
+      `;
 
     content.innerHTML = `
       <div class="detail-hero">
@@ -241,9 +295,11 @@
         <b>${escapeHTML(app.repository || "Не указан")}</b>
       </div>
 
+      ${downloadButton}
+
       <p class="detail-note">
-        Перед установкой APK убедись, что приложение получено
-        от разработчика или распространяется с его разрешения.
+        Скачивай APK только из доверенных источников.
+        Устанавливай приложение, если доверяешь его разработчику.
       </p>
     `;
 
