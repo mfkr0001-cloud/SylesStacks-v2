@@ -405,3 +405,56 @@ input[type="color"] { width: 42px; height: 35px; padding: 0; border: 0; backgrou
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* Compact landscape phones: use the available width instead of desktop spacing. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .app { padding: 0 0 6px; }
+  .emu-toolbar { display: none; }
+  .emu-titlebar { height: 34px; }
+  .launcher-desktop {
+    height: calc(100dvh - 34px);
+    min-height: 0;
+  }
+  .launcher-icons {
+    gap: 18px;
+    padding: 42px 22px 64px;
+  }
+  .launcher-app {
+    width: 82px;
+    gap: 7px;
+    font-size: 11px;
+  }
+  .launcher-art, .system-art {
+    width: 54px;
+    height: 54px;
+  }
+  .play-art svg { width: 52px; height: 52px; }
+  .launcher-clock { top: 7px; right: 12px; font-size: 15px; }
+  .launcher-hint { bottom: 13px; left: 18px; }
+  .bottom {
+    right: 5px;
+    bottom: 4px;
+    left: 5px;
+    width: auto;
+    max-width: none;
+    gap: 4px;
+    padding: 4px;
+  }
+  .bottom button {
+    min-width: 0;
+    flex: 1 1 0;
+    padding: 4px 3px;
+    font-size: 9px;
+  }
+  .bottom button span { margin-bottom: 1px; font-size: 15px; }
+  .page:not(#home) {
+    min-height: calc(100dvh - 34px);
+    padding: 10px 14px 72px;
+  }
+  .section { margin-top: 12px; }
+  .card { padding: 12px; }
+  .setting { padding: 8px 0; }
+  .edge { right: 0; }
+  .drawer { width: min(360px, 70vw); }
+}
