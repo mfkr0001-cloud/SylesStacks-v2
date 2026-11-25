@@ -1,437 +1,401 @@
 
 "use strict";
 
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const cookieParser = require("cookie-parser");
-const rateLimit = require("express-rate-limit");
-const { OAuth2Client } = require("google-auth-library");
-const jwt = require("jsonwebtoken");
+(() => {
+  const API_URL = "https://server-5aky.onrender.com/api/store/apps";
+  const STORAGE_KEY = "sylesstacks_v23_data";
 
-const app = express();
+  let catalog = [];
+  let activeCategory = "all";
+  let activeTab = "store";
+  let searchQuery = "";
+  let selectedApp = null;
 
-const PORT = Number(process.env.PORT || 3000);
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const SESSION_SECRET = process.env.SESSION_SECRET;
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN;
-const APK_RELEASES_REPO = process.env.APK_RELEASES_REPO || "";
+  const $ = id => document.getElementById(id);
 
-const COOKIE_SAME_SITE = (process.env.COOKIE_SAME_SITE || "none").toLowerCase();
-const SESSION_DAYS = Math.min(
-  Math.max(Number(process.env.SESSION_DAYS || 7), 1),
-  30
-);
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char]));
+  }
 
-if (!GOOGLE_CLIENT_ID || !SESSION_SECRET || !FRONTEND_ORIGIN) {
-  console.error(
-    "Missing required env vars: GOOGLE_CLIENT_ID, SESSION_SECRET, FRONTEND_ORIGIN"
-  );
-  process.exit(1);
-}
+  function formatSize(bytes) {
+    const size = Number(bytes) || 0;
 
-if (SESSION_SECRET.length < 32) {
-  console.error("SESSION_SECRET must be at least 32 characters.");
-  process.exit(1);
-}
-
-if (!["none", "lax", "strict"].includes(COOKIE_SAME_SITE)) {
-  console.error("COOKIE_SAME_SITE must be none, lax, or strict.");
-  process.exit(1);
-}
-
-if (
-  APK_RELEASES_REPO &&
-  !/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(APK_RELEASES_REPO)
-) {
-  console.error("APK_RELEASES_REPO must look like owner/repository.");
-  process.exit(1);
-}
-
-const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
-
-const allowedOrigins = FRONTEND_ORIGIN
-  .split(",")
-  .map(x => x.trim())
-  .filter(Boolean);
-
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: COOKIE_SAME_SITE,
-  path: "/",
-  maxAge: SESSION_DAYS * 24 * 60 * 60 * 1000
-};
-
-app.set("trust proxy", 1);
-app.use(helmet());
-
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+    if (size >= 1024 * 1024 * 1024) {
+      return (size / (1024 * 1024 * 1024)).toFixed(2) + " GB";
     }
 
-    return callback(new Error("Origin not allowed"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
-}));
-
-app.use(express.json({ limit: "20kb" }));
-app.use(cookieParser());
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 30,
-  standardHeaders: "draft-7",
-  legacyHeaders: false
-});
-
-const catalogLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 60,
-  standardHeaders: "draft-7",
-  legacyHeaders: false
-});
-
-function requireAllowedOrigin(req, res, next) {
-  const origin = req.get("origin");
-
-  if (origin && !allowedOrigins.includes(origin)) {
-    return res.status(403).json({ error: "Origin not allowed" });
-  }
-
-  next();
-}
-
-function setSession(res, user) {
-  const token = jwt.sign(
-    {
-      sub: user.sub,
-      email: user.email,
-      name: user.name,
-      picture: user.picture
-    },
-    SESSION_SECRET,
-    {
-      expiresIn: `${SESSION_DAYS}d`,
-      issuer: "sylesstacks-auth"
+    if (size >= 1024 * 1024) {
+      return (size / (1024 * 1024)).toFixed(1) + " MB";
     }
-  );
 
-  res.cookie("ss_session", token, cookieOptions);
-}
-
-function readSession(req) {
-  const token = req.cookies?.ss_session;
-
-  if (!token) return null;
-
-  try {
-    return jwt.verify(token, SESSION_SECRET, {
-      issuer: "sylesstacks-auth"
-    });
-  } catch {
-    return null;
-  }
-}
-
-/* =========================
-   APK CATALOG
-========================= */
-
-let catalogCache = {
-  data: null,
-  expiresAt: 0
-};
-
-const CATALOG_CACHE_MS = 60 * 1000;
-
-async function loadApkCatalog() {
-  if (!APK_RELEASES_REPO) {
-    return [];
+    return Math.round(size / 1024) + " KB";
   }
 
-  if (
-    catalogCache.data &&
-    Date.now() < catalogCache.expiresAt
-  ) {
-    return catalogCache.data;
+  function getCategory(app) {
+    const text = (
+      (app.name || "") + " " +
+      (app.description || "") + " " +
+      (app.fileName || "")
+    ).toLowerCase();
+
+    const gameWords = [
+      "game", "игра", "standoff", "brawl",
+      "minecraft", "roblox", "pubg", "mobile legends"
+    ];
+
+    return gameWords.some(word => text.includes(word))
+      ? "games"
+      : "apps";
   }
 
-  const apiUrl =
-    "https://api.github.com/repos/" +
-    APK_RELEASES_REPO +
-    "/releases?per_page=100";
+  function showMessage(message, isError = false) {
+    const root = $("storeGrid");
+    if (!root) return;
 
-  const response = await fetch(apiUrl, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "SylesStacks-Store"
-    },
-    signal: AbortSignal.timeout(12000)
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `GitHub Releases request failed: ${response.status}`
-    );
+    root.innerHTML =
+      '<div class="store-empty">' +
+      '<h3>' + escapeHTML(isError ? "Не удалось загрузить каталог" : "Загрузка") + '</h3>' +
+      '<p>' + escapeHTML(message) + '</p>' +
+      '</div>';
   }
 
-  const releases = await response.json();
+  async function loadCatalog() {
+    showMessage("Подключаемся к серверу...");
 
-  if (!Array.isArray(releases)) {
-    throw new Error("Invalid GitHub Releases response");
-  }
-
-  const apps = [];
-
-  for (const release of releases) {
-    if (release.draft || release.prerelease) continue;
-
-    const assets = Array.isArray(release.assets)
-      ? release.assets
-      : [];
-
-    for (const asset of assets) {
-      if (!asset.name || !asset.name.toLowerCase().endsWith(".apk")) {
-        continue;
-      }
-
-      if (
-        !asset.browser_download_url ||
-        !asset.browser_download_url.startsWith("https://github.com/")
-      ) {
-        continue;
-      }
-
-      apps.push({
-        id: `${release.id}-${asset.id}`,
-        name: asset.name.replace(/\.apk$/i, ""),
-        version: release.tag_name || "latest",
-        description: release.name || release.body || "",
-        fileName: asset.name,
-        size: asset.size,
-        downloads: asset.download_count || 0,
-        downloadUrl: asset.browser_download_url,
-        publishedAt: release.published_at || null,
-        repository: APK_RELEASES_REPO
-      });
-    }
-  }
-
-  catalogCache = {
-    data: apps,
-    expiresAt: Date.now() + CATALOG_CACHE_MS
-  };
-
-  return apps;
-}
-
-/* =========================
-   HEALTH
-========================= */
-
-app.get("/health", (_req, res) => {
-  res.json({
-    ok: true,
-    service: "sylesstacks-auth",
-    version: "1.1.0",
-    catalogConfigured: Boolean(APK_RELEASES_REPO)
-  });
-});
-
-/* =========================
-   GOOGLE AUTH
-========================= */
-
-app.post(
-  "/api/auth/google",
-  authLimiter,
-  requireAllowedOrigin,
-  async (req, res) => {
     try {
-      const credential = req.body?.credential;
-
-      if (
-        typeof credential !== "string" ||
-        credential.length > 10000
-      ) {
-        return res.status(400).json({
-          error: "Missing or invalid Google credential"
-        });
-      }
-
-      const ticket = await googleClient.verifyIdToken({
-        idToken: credential,
-        audience: GOOGLE_CLIENT_ID
+      const response = await fetch(API_URL, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json"
+        },
+        cache: "no-store"
       });
 
-      const payload = ticket.getPayload();
-
-      if (
-        !payload?.sub ||
-        !payload.email ||
-        payload.email_verified !== true
-      ) {
-        return res.status(401).json({
-          error: "Google account email is not verified"
-        });
+      if (!response.ok) {
+        throw new Error("Ошибка сервера: " + response.status);
       }
 
-      const user = {
-        sub: payload.sub,
-        email: payload.email,
-        name: payload.name || "",
-        picture: payload.picture || ""
-      };
+      const result = await response.json();
 
-      setSession(res, user);
+      if (!result || result.ok !== true || !Array.isArray(result.apps)) {
+        throw new Error("Сервер вернул неверный формат каталога.");
+      }
 
-      return res.json({
-        ok: true,
-        user
-      });
+      catalog = result.apps.map(app => ({
+        ...app,
+        category: getCategory(app)
+      }));
+
+      renderCatalog();
     } catch (error) {
-      console.warn("Google sign-in rejected:", error.message);
+      console.error("SylesStacks Store:", error);
 
-      return res.status(401).json({
-        error: "Google sign-in could not be verified"
-      });
-    }
-  }
-);
-
-app.get("/api/me", (req, res) => {
-  const session = readSession(req);
-
-  if (!session) {
-    return res.status(401).json({
-      authenticated: false
-    });
-  }
-
-  return res.json({
-    authenticated: true,
-    user: {
-      id: session.sub,
-      email: session.email,
-      name: session.name,
-      picture: session.picture
-    }
-  });
-});
-
-app.post(
-  "/api/logout",
-  requireAllowedOrigin,
-  (_req, res) => {
-    res.clearCookie("ss_session", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: COOKIE_SAME_SITE,
-      path: "/"
-    });
-
-    res.json({ ok: true });
-  }
-);
-
-/* =========================
-   STORE API
-========================= */
-
-// Полный каталог APK
-app.get(
-  "/api/store/apps",
-  catalogLimiter,
-  async (_req, res) => {
-    try {
-      const apps = await loadApkCatalog();
-
-      res.set("Cache-Control", "public, max-age=30");
-
-      return res.json({
-        ok: true,
-        count: apps.length,
-        apps
-      });
-    } catch (error) {
-      console.error("Store catalog error:", error.message);
-
-      return res.status(502).json({
-        ok: false,
-        error: "Could not load app catalog"
-      });
-    }
-  }
-);
-
-// Информация об одном APK
-app.get(
-  "/api/store/apps/:id",
-  catalogLimiter,
-  async (req, res) => {
-    try {
-      const apps = await loadApkCatalog();
-
-      const appItem = apps.find(
-        item => item.id === req.params.id
+      showMessage(
+        "Проверь подключение к интернету и доступность Render. " +
+        "Попробуй обновить каталог.",
+        true
       );
 
-      if (!appItem) {
-        return res.status(404).json({
-          error: "Application not found"
-        });
+      const root = $("storeGrid");
+
+      if (root) {
+        const button = document.createElement("button");
+        button.className = "store-back";
+        button.type = "button";
+        button.textContent = "Повторить загрузку";
+        button.addEventListener("click", loadCatalog);
+        root.appendChild(button);
       }
-
-      return res.json({
-        ok: true,
-        app: appItem
-      });
-    } catch (error) {
-      console.error("Store app error:", error.message);
-
-      return res.status(502).json({
-        error: "Could not load application"
-      });
     }
   }
-);
 
-/* =========================
-   ERROR HANDLER
-========================= */
+  function getFilteredApps() {
+    let result = [...catalog];
 
-app.use((err, _req, res, _next) => {
-  if (err.message === "Origin not allowed") {
-    return res.status(403).json({
-      error: "Origin not allowed"
+    if (activeCategory === "games") {
+      result = result.filter(app => app.category === "games");
+    } else if (activeCategory === "apps") {
+      result = result.filter(app => app.category === "apps");
+    } else if (activeCategory === "popular") {
+      result.sort((a, b) =>
+        (Number(b.downloads) || 0) - (Number(a.downloads) || 0)
+      );
+    }
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+
+      result = result.filter(app => {
+        const text = [
+          app.name,
+          app.description,
+          app.version,
+          app.fileName
+        ].join(" ").toLowerCase();
+
+        return text.includes(query);
+      });
+    }
+
+    return result;
+  }
+
+  function renderCatalog() {
+    const root = $("storeGrid");
+    const empty = $("storeEmpty");
+
+    if (!root) return;
+
+    root.innerHTML = "";
+
+    const apps = getFilteredApps();
+
+    if (empty) {
+      empty.hidden = apps.length > 0;
+    }
+
+    if (!apps.length) {
+      root.innerHTML =
+        '<div class="store-empty">' +
+        '<h3>Приложений пока нет</h3>' +
+        '<p>Попробуй изменить поиск или категорию.</p>' +
+        '</div>';
+      return;
+    }
+
+    apps.forEach(app => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "store-card";
+
+      const icon = document.createElement("span");
+      icon.className = "store-app-icon";
+      icon.textContent = app.category === "games" ? "🎮" : "📦";
+
+      const info = document.createElement("span");
+      info.className = "store-card-info";
+
+      const name = document.createElement("b");
+      name.textContent = app.name || "Без названия";
+
+      const version = document.createElement("small");
+      version.textContent = "Версия " + (app.version || "latest");
+
+      const rating = document.createElement("span");
+      rating.className = "store-rating";
+      rating.textContent =
+        formatSize(app.size) + " · " +
+        (Number(app.downloads) || 0) + " загрузок";
+
+      info.append(name, version, rating);
+
+      const arrow = document.createElement("span");
+      arrow.className = "store-card-arrow";
+      arrow.textContent = "›";
+
+      card.append(icon, info, arrow);
+      card.addEventListener("click", () => openDetails(app));
+
+      root.appendChild(card);
     });
   }
 
-  console.error(err);
+  function openDetails(app) {
+    selectedApp = app;
 
-  return res.status(500).json({
-    error: "Internal server error"
-  });
-});
+    const detail = $("storeDetail");
+    const content = $("storeDetailContent");
 
-/* =========================
-   START
-========================= */
+    if (!detail || !content) return;
 
-app.listen(PORT, () => {
-  console.log(
-    `SylesStacks server listening on port ${PORT}`
-  );
+    const icon = app.category === "games" ? "🎮" : "📦";
 
-  console.log(
-    APK_RELEASES_REPO
-      ? `APK catalog repository: ${APK_RELEASES_REPO}`
-      : "APK catalog is not configured"
-  );
-});
+    content.innerHTML = `
+      <div class="detail-hero">
+        <div class="store-app-icon large">${icon}</div>
+        <div>
+          <h1>${escapeHTML(app.name || "Без названия")}</h1>
+          <p>Версия ${escapeHTML(app.version || "latest")}</p>
+          <p>${escapeHTML(formatSize(app.size))}</p>
+        </div>
+      </div>
+
+      <p class="detail-description">
+        ${escapeHTML(app.description || "Описание отсутствует.")}
+      </p>
+
+      <div class="detail-meta">
+        <span>Имя файла</span>
+        <b>${escapeHTML(app.fileName || "Не указано")}</b>
+
+        <span>Загрузки</span>
+        <b>${Number(app.downloads) || 0}</b>
+
+        <span>Репозиторий</span>
+        <b>${escapeHTML(app.repository || "Не указан")}</b>
+      </div>
+
+      <p class="detail-note">
+        Перед установкой APK убедись, что приложение получено
+        от разработчика или распространяется с его разрешения.
+      </p>
+    `;
+
+    detail.hidden = false;
+
+    const back = detail.querySelector(".store-back");
+    if (back) {
+      back.onclick = closeDetails;
+    }
+  }
+
+  function closeDetails() {
+    const detail = $("storeDetail");
+
+    if (detail) {
+      detail.hidden = true;
+    }
+
+    selectedApp = null;
+  }
+
+  function showTab(tab) {
+    activeTab = tab;
+
+    const catalogPage = $("storeCatalogPage");
+    const myAppsPage = $("storeMyAppsPage");
+    const detail = $("storeDetail");
+
+    if (catalogPage) catalogPage.hidden = tab !== "store";
+    if (myAppsPage) myAppsPage.hidden = tab !== "apps";
+
+    if (detail) detail.hidden = true;
+
+    document.querySelectorAll("[data-store-main]").forEach(button => {
+      button.classList.toggle(
+        "active",
+        button.dataset.storeMain === tab
+      );
+    });
+
+    if (tab === "apps") {
+      renderMyApps();
+    }
+  }
+
+  function getLocalGames() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+
+      const data = JSON.parse(raw);
+
+      return Array.isArray(data.games) ? data.games : [];
+    } catch (error) {
+      console.warn("Не удалось прочитать библиотеку игр:", error);
+      return [];
+    }
+  }
+
+  function renderMyApps() {
+    const root = $("storeMyAppsList");
+    if (!root) return;
+
+    root.innerHTML = "";
+
+    const games = getLocalGames();
+
+    if (!games.length) {
+      root.innerHTML =
+        '<div class="store-empty">' +
+        '<h3>Библиотека пуста</h3>' +
+        '<p>Добавленные тобой игры появятся здесь.</p>' +
+        '</div>';
+      return;
+    }
+
+    games.forEach(game => {
+      const card = document.createElement("div");
+      card.className = "store-library-card";
+
+      const icon = document.createElement("span");
+      icon.className = "store-app-icon";
+      icon.textContent = "🎮";
+
+      const meta = document.createElement("div");
+      meta.className = "store-library-meta";
+
+      const name = document.createElement("b");
+      name.textContent = game.name || "Без названия";
+
+      const packageId = document.createElement("small");
+      packageId.textContent = game.packageId || "Package ID не указан";
+
+      meta.append(name, packageId);
+      card.append(icon, meta);
+
+      root.appendChild(card);
+    });
+  }
+
+  function setupEvents() {
+    document.querySelectorAll("[data-store-main]").forEach(button => {
+      button.addEventListener("click", () => {
+        showTab(button.dataset.storeMain);
+      });
+    });
+
+    document.querySelectorAll("[data-store-category]").forEach(button => {
+      button.addEventListener("click", () => {
+        activeCategory = button.dataset.storeCategory || "all";
+
+        document.querySelectorAll("[data-store-category]").forEach(item => {
+          item.classList.toggle("active", item === button);
+        });
+
+        renderCatalog();
+      });
+    });
+
+    const search = $("storeSearch");
+
+    if (search) {
+      search.addEventListener("input", () => {
+        searchQuery = search.value.trim();
+        renderCatalog();
+      });
+    }
+
+    const detail = $("storeDetail");
+
+    if (detail) {
+      const back = detail.querySelector(".store-back");
+      if (back) back.addEventListener("click", closeDetails);
+    }
+
+    window.addEventListener("storage", event => {
+      if (event.key === STORAGE_KEY && activeTab === "apps") {
+        renderMyApps();
+      }
+    });
+  }
+
+  function init() {
+    if (!$("storeGrid")) return;
+
+    setupEvents();
+    loadCatalog();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
