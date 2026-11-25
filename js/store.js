@@ -182,7 +182,7 @@
 
     return '<a class="store-download" href="' +
       escapeHTML(url) +
-      '" target="_blank" rel="noopener noreferrer" download>Скачать</a>';
+      '" data-native-download="true">Скачать</a>';
   }
 
   function renderCatalog() {
@@ -270,7 +270,7 @@
           url
             ? '<a class="store-detail-download" href="' +
               escapeHTML(url) +
-              '" target="_blank" rel="noopener noreferrer">Скачать приложение</a>'
+              '" data-native-download="true">Скачать приложение</a>'
             : "<p>Ссылка на загрузку отсутствует.</p>"
         }
       </div>
@@ -416,6 +416,26 @@
   }
 
   function setupEvents() {
+    document.addEventListener("click", event => {
+      const link = event.target.closest("a[data-native-download]");
+      if (!link) return;
+
+      const nativeBridge = window.SylesStacksNative;
+      if (!nativeBridge || typeof nativeBridge.downloadFile !== "function") {
+        return; // Browser fallback: let the normal download handling run.
+      }
+
+      // A Play Store URL is a web page, not an APK file.
+      try {
+        if (new URL(link.href).hostname === "play.google.com") return;
+      } catch (_) {
+        return;
+      }
+
+      event.preventDefault();
+      nativeBridge.downloadFile(link.href, link.textContent.trim() || "SylesStacks download");
+    });
+
     document.querySelectorAll("[data-store-main]").forEach(button => {
       button.addEventListener("click", () => {
         showTab(button.dataset.storeMain);
