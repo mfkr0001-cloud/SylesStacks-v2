@@ -1,4 +1,4 @@
-
+```javascript
 "use strict";
 
 (() => {
@@ -38,12 +38,10 @@
   }
 
   function getDownloadUrl(app) {
-    const value = String(app.downloadUrl || "").trim();
-
-    if (!value) return "";
+    const rawUrl = app.downloadUrl || app.url || "";
 
     try {
-      const url = new URL(value);
+      const url = new URL(rawUrl);
 
       if (url.protocol !== "https:") return "";
 
@@ -246,28 +244,40 @@
             justify-content:center;
             width:100%;
             box-sizing:border-box;
-            margin-top:20px;
             padding:15px 20px;
+            margin:20px 0;
             border-radius:12px;
-            text-decoration:none;
+            background:#7657ed;
+            color:#ffffff;
+            font-size:16px;
             font-weight:700;
-            text-align:center;
+            text-decoration:none;
+            cursor:pointer;
           "
-        >⬇ Скачать APK</a>
-        <p class="detail-note">
-          После скачивания открой APK на Android и следуй инструкциям установки.
-        </p>
+        >
+          ⬇ Скачать APK
+        </a>
       `
       : `
         <button
-          class="primary"
           type="button"
           disabled
-          style="width:100%;margin-top:20px;opacity:.55"
-        >Ссылка на APK пока недоступна</button>
-        <p class="detail-note">
-          Для этой игры сервер пока не передал downloadUrl.
-        </p>
+          style="
+            display:block;
+            width:100%;
+            padding:15px;
+            margin:20px 0;
+            border:0;
+            border-radius:12px;
+            background:#555;
+            color:#ddd;
+            font-size:16px;
+            font-weight:700;
+            opacity:0.7;
+          "
+        >
+          Ссылка на скачивание отсутствует
+        </button>
       `;
 
     content.innerHTML = `
@@ -298,16 +308,23 @@
       ${downloadButton}
 
       <p class="detail-note">
-        Скачивай APK только из доверенных источников.
-        Устанавливай приложение, если доверяешь его разработчику.
+        Скачивай APK только из источников, которым доверяешь.
       </p>
+
+      <button
+        type="button"
+        class="store-back"
+        id="storeDetailBack"
+      >
+        ← Назад к каталогу
+      </button>
     `;
 
     detail.hidden = false;
 
-    const back = detail.querySelector(".store-back");
+    const back = $("storeDetailBack");
     if (back) {
-      back.onclick = closeDetails;
+      back.addEventListener("click", closeDetails);
     }
   }
 
@@ -428,13 +445,6 @@
       });
     }
 
-    const detail = $("storeDetail");
-
-    if (detail) {
-      const back = detail.querySelector(".store-back");
-      if (back) back.addEventListener("click", closeDetails);
-    }
-
     window.addEventListener("storage", event => {
       if (event.key === STORAGE_KEY && activeTab === "apps") {
         renderMyApps();
@@ -455,3 +465,4 @@
     init();
   }
 })();
+```
