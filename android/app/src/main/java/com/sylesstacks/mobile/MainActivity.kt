@@ -5,9 +5,11 @@ import android.app.Activity
 import android.app.ActivityManager
 import android.app.DownloadManager
 import android.content.Context
+import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
@@ -21,6 +23,7 @@ import android.provider.Settings
 import android.util.Base64
 import android.view.Display
 import android.webkit.DownloadListener
+import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -37,6 +40,15 @@ class MainActivity : Activity() {
 
     private lateinit var webView: WebView
     private var fileCallback: ValueCallback<Array<Uri>>? = null
+    private var pendingDownload: PendingDownload? = null
+    private var downloadCompletedReceiver: DownloadCompletedReceiver? = null
+
+    private data class PendingDownload(
+        val url: String,
+        val title: String,
+        val mimeType: String?,
+        val userAgent: String?
+    )
 
     private val websiteUrl =
         "https://mfkr0001-cloud.github.io/SylesStacks-v2/"
@@ -58,8 +70,33 @@ class MainActivity : Activity() {
             }
         )
 
+        registerDownloadReceiver()
         configureWebView()
         webView.loadUrl(websiteUrl)
+    }
+
+    private fun registerDownloadReceiver() {
+        val receiver = DownloadCompletedReceiver()
+        downloadCompletedReceiver = receiver
+        val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            registerReceiver(receiver, filter)
+        }
+    }
+
+    override fun onDestroy() {
+        downloadCompletedReceiver?.let { receiver ->
+            try {
+                unregisterReceiver(receiver)
+            } catch (_: IllegalArgumentException) {
+            }
+        }
+        downloadCompletedReceiver = null
+        super.onDestroy()
     }
 
     private fun configureWebView() {
@@ -89,17 +126,20 @@ class MainActivity : Activity() {
                 request: WebResourceRequest?
             ): Boolean {
                 val url = request?.url ?: return false
+                val scheme = url.scheme?.lowercase()
 
-                if (url.host == "mfkr0001-cloud.github.io") {
-                    return false
-                }
+                // HTTP(S) pages and download URLs stay inside this WebView.
+                if (scheme == "https" || scheme == "http") return false
 
-                return try {
-                    startActivity(Intent(Intent.ACTION_VIEW, url))
-                    true
-                } catch (_: Exception) {
-                    false
+                if (scheme == "tel" || scheme == "mailto") {
+                    return try {
+                        startActivity(Intent(Intent.ACTION_VIEW, url))
+                        true
+                    } catch (_: Exception) {
+                        true
+                    }
                 }
+                return scheme != null
             }
 
             override fun onPageFinished(
@@ -138,42 +178,106 @@ class MainActivity : Activity() {
         }
 
         webView.setDownloadListener(
-            DownloadListener { url, _, contentDisposition, mimeType, _ ->
-                try {
-                    val request = DownloadManager.Request(Uri.parse(url))
-
-                    request.setMimeType(mimeType)
-                    request.setTitle(
-                        contentDisposition ?: "SylesStacks download"
-                    )
-                    request.setDescription("Downloading file...")
-                    request.setNotificationVisibility(
-                        DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
-                    )
-                    request.setDestinationInExternalPublicDir(
-                        Environment.DIRECTORY_DOWNLOADS,
-                        "SylesStacks-${System.currentTimeMillis()}.apk"
-                    )
-
-                    val manager =
-                        getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
-                    manager.enqueue(request)
-
-                    Toast.makeText(
-                        this,
-                        "Загрузка началась",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } catch (_: Exception) {
-                    Toast.makeText(
-                        this,
-                        "Не удалось начать загрузку",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+            DownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+                enqueueDownload(
+                    url = url,
+                    title = contentDisposition ?: "SylesStacks download",
+                    mimeType = mimeType,
+                    userAgent = userAgent
+                )
             }
         )
+    }
+
+    private fun enqueueDownload(
+        url: String,
+        title: String,
+        mimeType: String?,
+        userAgent: String? = null
+    ): Long? {
+        if (
+            Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
+            checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED
+        ) {
+            pendingDownload = PendingDownload(url, title, mimeType, userAgent)
+            requestPermissions(
+                arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                STORAGE_PERMISSION_REQUEST
+            )
+            Toast.makeText(
+                this,
+                "Разреши доступ к файлам для сохранения загрузки",
+                Toast.LENGTH_LONG
+            ).show()
+            return null
+        }
+
+        return try {
+            val parsed = Uri.parse(url)
+            if (parsed.scheme != "https" && parsed.scheme != "http") {
+                throw IllegalArgumentException("Unsupported download URL")
+            }
+
+            val request = DownloadManager.Request(parsed)
+            val safeTitle = title
+                .replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                .take(100)
+                .ifBlank { "SylesStacks download" }
+            val apk = safeTitle.endsWith(".apk", ignoreCase = true) ||
+                parsed.lastPathSegment?.endsWith(".apk", ignoreCase = true) == true ||
+                mimeType.equals("application/vnd.android.package-archive", true)
+
+            request.setMimeType(
+                if (apk) "application/vnd.android.package-archive"
+                else mimeType ?: "application/octet-stream"
+            )
+            request.setTitle(safeTitle)
+            request.setDescription("SylesStacks · Загрузка файла")
+            request.setNotificationVisibility(
+                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+            )
+            request.setAllowedOverMetered(true)
+            request.setAllowedOverRoaming(false)
+
+            val cookies = CookieManager.getInstance().getCookie(url)
+            if (!cookies.isNullOrBlank()) request.addRequestHeader("Cookie", cookies)
+            if (!userAgent.isNullOrBlank()) request.addRequestHeader("User-Agent", userAgent)
+
+            val extension = (parsed.lastPathSegment ?: safeTitle)
+                .substringAfterLast('.', "")
+                .lowercase()
+                .takeIf { it.matches(Regex("[a-z0-9]{1,8}")) && it != "apk" }
+
+            val fileName = if (apk) {
+                "SylesStacks-${System.currentTimeMillis()}.apk"
+            } else {
+                "SylesStacks-${System.currentTimeMillis()}" +
+                    (extension?.let { ".$it" } ?: "")
+            }
+            request.setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                fileName
+            )
+
+            val manager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val id = manager.enqueue(request)
+            if (apk) {
+                getSharedPreferences("sylesstacks_downloads", Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(id.toString(), true)
+                    .apply()
+            }
+            Toast.makeText(this, "Загрузка началась", Toast.LENGTH_SHORT).show()
+            id
+        } catch (error: Exception) {
+            Toast.makeText(
+                this,
+                "Не удалось начать загрузку: ${error.message ?: "ошибка"}",
+                Toast.LENGTH_LONG
+            ).show()
+            null
+        }
     }
 
     private fun sendInstalledAppsToPage() {
@@ -289,6 +393,24 @@ class MainActivity : Activity() {
     }
 
     inner class AndroidBridge {
+
+        @JavascriptInterface
+        fun downloadFile(url: String, title: String): String {
+            val id = enqueueDownload(
+                url = url,
+                title = title.ifBlank { "SylesStacks download" },
+                mimeType = if (url.substringBefore("?").endsWith(".apk", true)) {
+                    "application/vnd.android.package-archive"
+                } else {
+                    null
+                }
+            )
+            return if (id != null) {
+                JSONObject().put("success", true).put("downloadId", id).toString()
+            } else {
+                JSONObject().put("success", false).toString()
+            }
+        }
 
         @JavascriptInterface
         fun launchPackage(packageName: String) {
@@ -582,6 +704,34 @@ class MainActivity : Activity() {
     }
 
     @Deprecated("Deprecated in Android API")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == STORAGE_PERMISSION_REQUEST) {
+            val pending = pendingDownload
+            pendingDownload = null
+            if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED && pending != null) {
+                enqueueDownload(
+                    pending.url,
+                    pending.title,
+                    pending.mimeType,
+                    pending.userAgent
+                )
+            } else {
+                Toast.makeText(
+                    this,
+                    "Без разрешения файл не будет сохранён",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    @Deprecated("Deprecated in Android API")
     override fun onActivityResult(
         requestCode: Int,
         resultCode: Int,
@@ -627,5 +777,6 @@ class MainActivity : Activity() {
 
     companion object {
         private const val FILE_PICKER_REQUEST = 7001
+        private const val STORAGE_PERMISSION_REQUEST = 7002
     }
 }
