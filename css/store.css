@@ -1,47 +1,244 @@
 
-/* SylesStacks APK download buttons */
+/* =========================================
+   SylesStacks v2.3 — STORE DESIGN
+========================================= */
 
-.store-app-row {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
+.store-page {
   width: 100%;
-  min-width: 0;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 22px;
+  color: #f4f2ff;
   box-sizing: border-box;
 }
 
-.store-app-row .store-card {
-  display: flex;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.store-download-button {
+.store-app-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 48px;
-  padding: 13px 18px;
-  box-sizing: border-box;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #805cff, #5735ce);
-  color: #fff;
-  font-size: 16px;
+  justify-content: space-between;
+  padding: 28px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(168,130,255,.2);
+  border-radius: 22px;
+  background: linear-gradient(135deg,#21183d,#111629 70%);
+}
+
+.store-app-kicker {
+  color: #b99cff;
+  font-size: 11px;
   font-weight: 800;
-  text-align: center;
-  text-decoration: none;
+  letter-spacing: 2px;
+}
+
+.store-app-header h1 {
+  margin: 9px 0 5px;
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.store-app-header p {
+  margin: 0;
+  color: #a9a7bc;
+}
+
+.store-header-mark {
+  display: grid;
+  place-items: center;
+  width: 65px;
+  height: 65px;
+  border-radius: 19px;
+  background: linear-gradient(135deg,#a77aff,#6438d5);
+  color: white;
+  font-size: 22px;
+  font-weight: 900;
+  box-shadow: 0 8px 30px rgba(125,75,255,.3);
+}
+
+/* Main tabs */
+
+.store-main-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+  padding: 5px;
+  border-radius: 14px;
+  background: #141827;
+}
+
+.store-main-tabs button {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #a9a9bd;
+  font-weight: 800;
   cursor: pointer;
-  position: relative;
-  z-index: 5;
 }
 
-.store-download-button:hover {
-  filter: brightness(1.12);
+.store-main-tabs button.active {
+  background: #7652df;
+  color: white;
 }
 
-.store-download-disabled {
+/* Search */
+
+.store-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 16px;
+  margin-bottom: 25px;
+  border: 1px solid #292d43;
+  border-radius: 15px;
+  background: #151a2a;
+}
+
+.store-search span {
+  color: #a98aff;
+  font-size: 25px;
+}
+
+.store-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: white;
+  font-size: 15px;
+}
+
+.store-search input::placeholder {
+  color: #777d94;
+}
+
+/* Headings */
+
+.store-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 22px 0 15px;
+}
+
+.store-heading-row h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.store-heading-row span {
+  color: #9995b1;
+  font-size: 12px;
+}
+
+/* Categories */
+
+.store-tabs {
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+
+.store-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.store-tabs button {
+  flex: 0 0 auto;
+  min-height: 39px;
+  padding: 0 17px;
+  border: 1px solid #30334a;
+  border-radius: 30px;
+  background: #171c2d;
+  color: #b6b5c8;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.store-tabs button.active {
+  border-color: #9a79ff;
+  background: rgba(139,100,255,.2);
+  color: #c8b4ff;
+}
+
+/* Catalog */
+
+#storeGrid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 15px;
+  width: 100%;
+}
+
+#storeGrid .store-app-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid #292d43;
+  border-radius: 19px;
+  background: linear-gradient(145deg,#1b2032,#121725);
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  transition: transform .2s,border-color .2s;
+}
+
+#storeGrid .store-app-row:hover {
+  transform: translateY(-3px);
+  border-color: #7958d8;
+}
+
+#storeGrid .store-app-icon {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 19px;
+  background: linear-gradient(135deg,#38265f,#202943);
+  color: white;
+  font-size: 32px;
+}
+
+#storeGrid .store-app-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#storeGrid .store-app-info {
+  flex: 1;
+  min-width: 0;
+}
+
+#storeGrid .store-app-info h3 {
+  margin: 0 0 7px;
+  overflow-wrap: anywhere;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+#storeGrid .store-app-info p {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+  color: #999fb4;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Download */
+
+#storeGrid .store-download,
+.store-detail-download {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,14 +246,201 @@
   min-height: 46px;
   padding: 12px;
   box-sizing: border-box;
-  border: 1px solid #555;
+  border: 0;
   border-radius: 12px;
-  background: #333;
-  color: #ddd;
+  background: linear-gradient(135deg,#9872ff,#633bd2);
+  color: white;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 900;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 5px 16px rgba(112,70,230,.2);
 }
 
-#storeDetailContent .store-download-button {
-  margin: 20px 0;
+#storeGrid .store-download:hover,
+.store-detail-download:hover {
+  filter: brightness(1.15);
+}
+
+#storeGrid .store-details-button {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #39334f;
+  border-radius: 11px;
+  background: #222039;
+  color: #c7b5ff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Empty and errors */
+
+.store-empty {
+  padding: 35px 18px;
+  text-align: center;
+  border: 1px dashed #37334f;
+  border-radius: 18px;
+  background: #151a29;
+}
+
+.store-empty span {
+  color: #a987ff;
+  font-size: 35px;
+}
+
+.store-empty h3 {
+  margin: 10px 0 5px;
+  color: white;
+}
+
+.store-empty p {
+  color: #969bb0;
+  font-size: 13px;
+}
+
+.store-error {
+  grid-column: 1/-1;
+  padding: 22px;
+  border: 1px solid #653b50;
+  border-radius: 16px;
+  background: #281a2b;
+  color: #ffb5c4;
+}
+
+/* My apps */
+
+.store-platform-note {
+  padding: 15px;
+  border: 1px solid #30334b;
+  border-radius: 14px;
+  background: #171c2d;
+  color: #a8adc1;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.store-myapps-list .store-app-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px;
+  margin-bottom: 12px;
+  border: 1px solid #292d43;
+  border-radius: 15px;
+  background: #171c2d;
+}
+
+/* Details */
+
+.store-detail {
+  padding: 18px;
+  margin-top: 18px;
+  border: 1px solid #30334a;
+  border-radius: 20px;
+  background: linear-gradient(145deg,#1b2032,#121725);
+}
+
+.store-back {
+  padding: 9px 16px;
+  border: 1px solid #42365f;
+  border-radius: 10px;
+  background: #25203b;
+  color: #cbbaff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.store-detail-content {
+  padding: 20px 0;
+}
+
+.store-detail-icon {
+  display: block;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 18px;
+  border-radius: 23px;
+  object-fit: cover;
+  background: #292442;
+}
+
+.store-detail-content h2 {
+  color: white;
+  font-size: 25px;
+}
+
+.store-detail-content p {
+  color: #a8adc1;
+  line-height: 1.6;
+}
+
+.store-detail-download {
+  margin-top: 20px;
+}
+
+/* Footer */
+
+.store-footer {
+  padding: 22px 5px;
+  color: #777e94;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* Compatibility */
+
+#storeCatalogPage[hidden],
+#storeMyAppsPage[hidden],
+#storeDetail[hidden] {
+  display: none !important;
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .store-page {
+    padding: 13px;
+  }
+
+  .store-app-header {
+    padding: 20px;
+  }
+
+  .store-app-header h1 {
+    font-size: 26px;
+  }
+
+  .store-header-mark {
+    width: 53px;
+    height: 53px;
+  }
+
+  #storeGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  #storeGrid .store-app-row {
+    display: grid;
+    grid-template-columns: 65px minmax(0,1fr);
+    gap: 12px;
+    padding: 13px;
+  }
+
+  #storeGrid .store-app-icon {
+    width: 65px;
+    height: 65px;
+    grid-row: span 2;
+  }
+
+  #storeGrid .store-app-info {
+    align-self: center;
+  }
+
+  #storeGrid .store-download,
+  #storeGrid .store-details-button {
+    grid-column: 1/-1;
+  }
 }
