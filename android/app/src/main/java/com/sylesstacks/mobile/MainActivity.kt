@@ -1,3 +1,4 @@
+
 package com.sylesstacks.mobile
 
 import android.app.Activity
@@ -17,6 +18,8 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.Base64
+import android.view.Display
 import android.webkit.DownloadListener
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
@@ -26,7 +29,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.Toast
-import android.util.Base64
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -250,8 +252,7 @@ class MainActivity : Activity() {
             "window.SylesStacksInstalledApps = $json;" +
                 "if(window.SylesStacksRefreshApps){" +
                 "window.SylesStacksRefreshApps();" +
-                "}"
-            ,
+                "}",
             null
         )
     }
@@ -355,6 +356,113 @@ class MainActivity : Activity() {
         }
 
         @JavascriptInterface
+        fun getDisplayModes(): String {
+            return try {
+                val display = windowManager.defaultDisplay
+                val modes = JSONArray()
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    val supportedModes = display.supportedModes
+                        .sortedBy { it.refreshRate }
+
+                    for (mode in supportedModes) {
+                        modes.put(JSONObject().apply {
+                            put("id", mode.modeId)
+                            put("refreshRate", mode.refreshRate.toDouble())
+                            put("width", mode.physicalWidth)
+                            put("height", mode.physicalHeight)
+                        })
+                    }
+                }
+
+                JSONObject().apply {
+                    put("currentRefreshRate", display.refreshRate.toDouble())
+                    put("modes", modes)
+                }.toString()
+            } catch (e: Exception) {
+                JSONObject().apply {
+                    put(
+                        "error",
+                        e.message ?: "Ошибка получения режимов экрана"
+                    )
+                }.toString()
+            }
+        }
+
+        @JavascriptInterface
+        fun setDisplayRefreshRate(refreshRate: Double): String {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                return JSONObject().apply {
+                    put("success", false)
+                    put("message", "Требуется Android 6.0 или новее")
+                }.toString()
+            }
+
+            return try {
+                val display = windowManager.defaultDisplay
+
+                if (refreshRate <= 0.0) {
+                    runOnUiThread {
+                        val params = window.attributes
+                        params.preferredDisplayModeId = 0
+                        window.attributes = params
+                    }
+
+                    return JSONObject().apply {
+                        put("success", true)
+                        put("message", "Автоматический режим")
+                    }.toString()
+                }
+
+                val selectedMode = display.supportedModes
+                    .minByOrNull {
+                        kotlin.math.abs(
+                            it.refreshRate.toDouble() - refreshRate
+                        )
+                    }
+
+                if (
+                    selectedMode == null ||
+                    kotlin.math.abs(
+                        selectedMode.refreshRate.toDouble() - refreshRate
+                    ) > 1.0
+                ) {
+                    return JSONObject().apply {
+                        put("success", false)
+                        put("message", "Такая частота не поддерживается")
+                    }.toString()
+                }
+
+                runOnUiThread {
+                    val params = window.attributes
+                    params.preferredDisplayModeId = selectedMode.modeId
+                    window.attributes = params
+                }
+
+                JSONObject().apply {
+                    put("success", true)
+                    put(
+                        "message",
+                        "Запрошено ${selectedMode.refreshRate} Hz"
+                    )
+                    put(
+                        "refreshRate",
+                        selectedMode.refreshRate.toDouble()
+                    )
+                }.toString()
+
+            } catch (e: Exception) {
+                JSONObject().apply {
+                    put("success", false)
+                    put(
+                        "message",
+                        e.message ?: "Не удалось изменить частоту"
+                    )
+                }.toString()
+            }
+        }
+
+        @JavascriptInterface
         fun getDeviceStats(): String {
             return try {
                 val result = JSONObject()
@@ -422,17 +530,29 @@ class MainActivity : Activity() {
                     result.put("thermalStatus", thermalName)
                     result.put("thermalStatusCode", thermalStatus)
                 } else {
-                    result.put("thermalStatus", "Не поддерживается Android")
+                    result.put(
+                        "thermalStatus",
+                        "Не поддерживается Android"
+                    )
                     result.put("thermalStatusCode", -1)
                 }
 
-                result.put("androidVersion", Build.VERSION.RELEASE ?: "Unknown")
-                result.put("deviceModel", "${Build.MANUFACTURER} ${Build.MODEL}")
+                result.put(
+                    "androidVersion",
+                    Build.VERSION.RELEASE ?: "Unknown"
+                )
+                result.put(
+                    "deviceModel",
+                    "${Build.MANUFACTURER} ${Build.MODEL}"
+                )
 
                 result.toString()
             } catch (e: Exception) {
                 JSONObject().apply {
-                    put("error", e.message ?: "Не удалось получить данные")
+                    put(
+                        "error",
+                        e.message ?: "Не удалось получить данные"
+                    )
                 }.toString()
             }
         }
