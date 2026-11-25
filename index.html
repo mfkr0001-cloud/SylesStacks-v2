@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
@@ -175,7 +176,7 @@
   </div>
 
   <div class="setting">
-   <div><b>Вход в Google аккаунт</b><small>Авторизация должна выполняться системным Google-компонентом, не HTML-формой</small></div>
+   <div><b>Вход в Google аккаунт</b><small>Авторизация выполняется системным Google-компонентом</small></div>
    <span class="tag">Недоступно</span>
   </div>
 
@@ -187,9 +188,8 @@
 
  <div class="notice note">
   <b>Почему пока не работает:</b> эта сборка — HTML-интерфейс/лаунчер, а не виртуальная машина Android.
-  Веб-страница не может безопасно создать системный Google-вход, установить Play Services или запускать Android APK.
+  Веб-страница не может создать системный Google-вход, установить Play Services или запускать Android APK самостоятельно.
   Не вводи пароль Google в сторонние HTML-формы.
-  Для настоящего Play Store понадобится отдельный Android runtime/APK-модуль и совместимый, лицензированный образ GMS.
  </div>
 
  <div class="row" style="margin-top:12px">
@@ -234,9 +234,8 @@
  </div>
 
  <div class="notice note">
-  Кнопка «Запуск» пока не вызывает Android Activity: браузер не имеет надёжного доступа к списку установленных приложений.
-  Package ID сохранён для будущего нативного Android-моста.
-  Наличие игры на телефоне проверит уже APK-оболочка.
+  Запуск установленной игры доступен через Android APK-модуль.
+  В обычном браузере запуск Android-приложений недоступен.
  </div>
 </section>
 
@@ -344,7 +343,7 @@
 
  <div class="notice note">
   Прицел отображается только внутри этой HTML-страницы.
-  Отдельный Android Overlay потребует нативный сервис, разрешение «Поверх других приложений» и проверку совместимости с правилами конкретной игры.
+  Отдельный Android Overlay потребует нативный сервис и разрешение «Поверх других приложений».
  </div>
 </section>
 
@@ -470,17 +469,22 @@
   </div>
 
   <div class="setting">
-   <div><b>Android запуск игр</b><small>Требуется нативный мост</small></div>
-   <span class="tag">Не подключено</span>
+   <div><b>Android запуск игр</b><small>Запуск через нативный Android-мост</small></div>
+   <span class="tag">APK-модуль</span>
   </div>
 
   <div class="setting">
-   <div><b>Системный FPS и температура</b><small>Требуются Android API / производительский интерфейс</small></div>
-   <span class="tag">Нет доступа</span>
+   <div><b>Диагностика RAM и батареи</b><small>Данные Android, если поддерживаются</small></div>
+   <span class="tag">APK-модуль</span>
   </div>
 
   <div class="setting">
-   <div><b>Оверлей прицела</b><small>Требуется Android overlay service</small></div>
+   <div><b>Системные настройки игры</b><small>Открытие страницы настроек Android</small></div>
+   <span class="tag">APK-модуль</span>
+  </div>
+
+  <div class="setting">
+   <div><b>Оверлей прицела</b><small>Требуется отдельный Android overlay service</small></div>
    <span class="tag">Не подключено</span>
   </div>
  </div>
@@ -528,12 +532,13 @@
   <button class="secondary tiny" onclick="drawer();go('device')">Открыть</button>
  </div>
 
- <p class="muted">Нативные Android-функции появятся после подключения APK-модуля.</p>
+ <p class="muted">Нативные Android-функции доступны через APK-модуль.</p>
 </aside>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="js/app.js?v=20261125"></script>
+<script src="js/optimizer.js?v=20261125"></script>
 <script src="js/launcher.js?v=20261125"></script>
 <script src="js/store.js?v=20261127"></script>
 
