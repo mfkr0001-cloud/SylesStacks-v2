@@ -43,6 +43,10 @@ const DEFAULT_DATA = {
 
 let data = loadData();
 
+/* История страниц SylesStacks */
+let pageHistory = ['home'];
+let pageHistoryIndex = 0;
+
 function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
@@ -158,7 +162,20 @@ function toast(msg) {
   }, 2600);
 }
 
-function go(id) {
+/* Переключение страниц с записью истории */
+function go(id, remember = true) {
+  const target = document.getElementById(id);
+
+  if (!target || !target.classList.contains('page')) return;
+
+  const current = document.querySelector('.page.active');
+
+  if (current && current.id !== id && remember) {
+    pageHistory = pageHistory.slice(0, pageHistoryIndex + 1);
+    pageHistory.push(id);
+    pageHistoryIndex++;
+  }
+
   document.querySelectorAll('.page').forEach(p => {
     p.classList.toggle('active', p.id === id);
   });
@@ -176,6 +193,26 @@ function go(id) {
   if (id === 'gameprofiles') {
     renderGameProfiles();
   }
+}
+
+/* Стрелка влево — предыдущая страница */
+function goBackPage() {
+  if (pageHistoryIndex <= 0) {
+    return toast('Ты уже на первой странице.');
+  }
+
+  pageHistoryIndex--;
+  go(pageHistory[pageHistoryIndex], false);
+}
+
+/* Стрелка вправо — следующая страница */
+function goForwardPage() {
+  if (pageHistoryIndex >= pageHistory.length - 1) {
+    return toast('Следующей страницы пока нет.');
+  }
+
+  pageHistoryIndex++;
+  go(pageHistory[pageHistoryIndex], false);
 }
 
 document.querySelectorAll('[data-go]').forEach(b => {
@@ -241,7 +278,6 @@ function renderFPS() {
   });
 }
 
-/* ИСПРАВЛЕНО: отсутствующие элементы больше не вызывают ошибку */
 function updateOverview() {
   const homeFps = document.getElementById('homeFps');
   const gameCount = document.getElementById('gameCount');
