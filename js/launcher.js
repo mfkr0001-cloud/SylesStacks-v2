@@ -2,7 +2,10 @@
 
 (() => {
   function refreshApps() {
-    const root = document.getElementById('launcher-icons');
+    const root =
+      document.querySelector('.launcher-icons') ||
+      document.getElementById('launcher-icons');
+
     if (!root) return;
 
     root.querySelectorAll('.native-game-app').forEach(el => el.remove());
@@ -11,7 +14,9 @@
 
     const games = apps
       .filter(app => app && app.packageName)
-      .sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+      .sort((a, b) =>
+        String(a.name || '').localeCompare(String(b.name || ''), 'ru')
+      );
 
     games.forEach(app => {
       const button = document.createElement('button');
@@ -21,21 +26,24 @@
       const art = document.createElement('span');
       art.className = 'launcher-art native-game-art';
 
-      const img = document.createElement('img');
-      img.src = app.icon || '';
-      img.alt = '';
-
-      art.appendChild(img);
+      if (app.icon) {
+        const img = document.createElement('img');
+        img.src = app.icon;
+        img.alt = app.name || 'Приложение';
+        art.appendChild(img);
+      }
 
       const label = document.createElement('span');
       label.className = 'native-game-label';
-      label.textContent = app.name;
+      label.textContent = app.name || 'Приложение';
 
       button.append(art, label);
 
       button.addEventListener('click', () => {
-        if (window.SylesStacksNative) {
-          window.SylesStacksNative.launchPackage(app.packageName);
+        const bridge = window.SylesStacksNative;
+
+        if (bridge && typeof bridge.launchPackage === 'function') {
+          bridge.launchPackage(app.packageName);
         }
       });
 
@@ -43,9 +51,10 @@
     });
 
     const hint = document.querySelector('.launcher-hint');
+
     if (hint) {
       hint.textContent = games.length
-        ? 'Нажми на значок, чтобы запустить игру'
+        ? 'Нажми на значок, чтобы запустить приложение'
         : 'Установленные приложения появятся здесь автоматически';
     }
   }
