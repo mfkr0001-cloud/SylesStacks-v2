@@ -1,3 +1,4 @@
+
 name: SylesStacks Mobile Android
 
 on:
@@ -10,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,8 +31,23 @@ jobs:
         working-directory: android
         run: gradle assembleDebug
 
-      - name: Upload APK
+      - name: Prepare APK ZIP
+        run: |
+          mkdir -p release
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+
+          if [ ! -f "$APK" ]; then
+            echo "ERROR: APK not found!"
+            exit 1
+          fi
+
+          cp "$APK" release/SylesStacks-Mobile.apk
+          cd release
+          zip -j SylesStacks-Mobile-APK.zip SylesStacks-Mobile.apk
+
+      - name: Upload APK ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: SylesStacks-Mobile-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: SylesStacks-Mobile-APK
+          path: release/SylesStacks-Mobile-APK.zip
+          if-no-files-found: error
