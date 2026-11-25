@@ -924,3 +924,110 @@ function boot() {
 }
 
 boot();
+/* SylesStacks — Navigation History Fix */
+(() => {
+  'use strict';
+
+  let historyPages = [];
+  let historyIndex = -1;
+  let currentPage = null;
+
+  const getActivePage = () =>
+    document.querySelector('.page.active');
+
+  function rememberPage(id) {
+    if (!id || id === currentPage) return;
+
+    if (historyIndex === -1) {
+      historyPages = [id];
+      historyIndex = 0;
+    } else {
+      historyPages = historyPages.slice(0, historyIndex + 1);
+      historyPages.push(id);
+      historyIndex++;
+    }
+
+    currentPage = id;
+  }
+
+  const originalGo = window.go;
+
+  window.go = function (id, remember = true) {
+    const target = document.getElementById(id);
+
+    if (!target || !target.classList.contains('page')) return;
+
+    if (remember) {
+      rememberPage(id);
+    } else {
+      currentPage = id;
+    }
+
+    if (typeof originalGo === 'function') {
+      return originalGo(id, false);
+    }
+
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.toggle('active', page.id === id);
+    });
+  };
+
+  window.goBackPage = function () {
+    if (historyIndex <= 0) {
+      return toast('Ты уже на первой странице.');
+    }
+
+    historyIndex--;
+    const id = historyPages[historyIndex];
+
+    currentPage = id;
+    window.go(id, false);
+  };
+
+  window.goForwardPage = function () {
+    if (historyIndex >= historyPages.length - 1) {
+      return toast('Следующей страницы пока нет.');
+    }
+
+    historyIndex++;
+    const id = historyPages[historyIndex];
+
+    currentPage = id;
+    window.go(id, false);
+  };
+
+  const active = getActivePage();
+  if (active) {
+    historyPages = [active.id];
+    historyIndex = 0;
+    currentPage = active.id;
+  }
+
+  /* Отслеживаем переходы, сделанные другими скриптами */
+  const observer = new MutationObserver(() => {
+    const page = getActivePage();
+
+    if (page && page.id !== currentPage) {
+      rememberPage(page.id);
+    }
+  });
+
+  observer.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['class']
+  });
+
+  /* Гарантируем обработку нажатий стрелок */
+  document.querySelectorAll('.emu-toolbar button[title="Предыдущая страница"]')
+    .forEach(button => {
+      button.type = 'button';
+      button.onclick = () => window.goBackPage();
+    });
+
+  document.querySelectorAll('.emu-toolbar button[title="Следующая страница"]')
+    .forEach(button => {
+      button.type = 'button';
+      button.onclick = () => window.goForwardPage();
+    });
+})();
