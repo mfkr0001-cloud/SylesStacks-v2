@@ -37,18 +37,111 @@
     return Math.round(size / 1024) + " KB";
   }
 
+  // Получение ссылки на APK из каталога
   function getDownloadUrl(app) {
-    const rawUrl = app.downloadUrl || app.url || "";
+    const candidates = [
+      app.downloadUrl,
+      app.download_url,
+      app.apkUrl,
+      app.apk_url,
+      app.url,
+      app.asset?.browser_download_url,
+      app.asset?.url
+    ];
 
-    try {
-      const url = new URL(rawUrl);
+    for (const candidate of candidates) {
+      if (typeof candidate !== "string" || !candidate.trim()) {
+        continue;
+      }
 
-      if (url.protocol !== "https:") return "";
+      try {
+        const url = new URL(candidate.trim());
 
-      return url.href;
-    } catch {
-      return "";
+        if (url.protocol === "https:") {
+          return url.href;
+        }
+      } catch (error) {
+        console.warn("Некорректная ссылка загрузки:", candidate);
+      }
     }
+
+    return "";
+  }
+
+  // Стили кнопок добавляются автоматически
+  function installStoreStyles() {
+    if ($("sylesstacks-store-download-styles")) return;
+
+    const style = document.createElement("style");
+    style.id = "sylesstacks-store-download-styles";
+
+    style.textContent = `
+      #storeGrid .store-app-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 9px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      #storeGrid .store-card {
+        display: flex !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        cursor: pointer !important;
+      }
+
+      .store-download-button {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        min-height: 48px !important;
+        padding: 13px 18px !important;
+        box-sizing: border-box !important;
+        border: none !important;
+        border-radius: 12px !important;
+        background: linear-gradient(135deg, #805cff, #5735ce) !important;
+        color: #ffffff !important;
+        font-size: 16px !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        position: relative !important;
+        z-index: 5 !important;
+      }
+
+      .store-download-button:hover {
+        filter: brightness(1.12);
+      }
+
+      .store-download-disabled {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        min-height: 46px !important;
+        padding: 12px !important;
+        box-sizing: border-box !important;
+        border: 1px solid #555 !important;
+        border-radius: 12px !important;
+        background: #333 !important;
+        color: #ddd !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        opacity: 1 !important;
+      }
+
+      #storeDetailContent .store-download-button {
+        margin: 20px 0 !important;
+      }
+    `;
+
+    document.head.appendChild(style);
   }
 
   function getCategory(app) {
@@ -59,8 +152,14 @@
     ).toLowerCase();
 
     const gameWords = [
-      "game", "игра", "standoff", "brawl",
-      "minecraft", "roblox", "pubg", "mobile legends"
+      "game",
+      "игра",
+      "standoff",
+      "brawl",
+      "minecraft",
+      "roblox",
+      "pubg",
+      "mobile legends"
     ];
 
     return gameWords.some(word => text.includes(word))
@@ -74,11 +173,14 @@
 
     root.innerHTML =
       '<div class="store-empty">' +
-      '<h3>' + escapeHTML(isError ? "Не удалось загрузить каталог" : "Загрузка") + '</h3>' +
+      '<h3>' +
+      escapeHTML(isError ? "Не удалось загрузить каталог" : "Загрузка") +
+      '</h3>' +
       '<p>' + escapeHTML(message) + '</p>' +
       '</div>';
   }
 
+  // Загрузка каталога с сервера
   async function loadCatalog() {
     showMessage("Подключаемся к серверу...");
 
@@ -107,12 +209,12 @@
       }));
 
       renderCatalog();
+
     } catch (error) {
       console.error("SylesStacks Store:", error);
 
       showMessage(
-        "Проверь подключение к интернету и доступность Render. " +
-        "Попробуй обновить каталог.",
+        "Проверь подключение к интернету и доступность Render.",
         true
       );
 
@@ -138,7 +240,8 @@
       result = result.filter(app => app.category === "apps");
     } else if (activeCategory === "popular") {
       result.sort((a, b) =>
-        (Number(b.downloads) || 0) - (Number(a.downloads) || 0)
+        (Number(b.downloads) || 0) -
+        (Number(a.downloads) || 0)
       );
     }
 
@@ -160,6 +263,35 @@
     return result;
   }
 
+  // Создание кнопки загрузки
+  function createDownloadButton(app) {
+    const url = getDownloadUrl(app);
+
+    if (!url) {
+      const disabled = document.createElement("button");
+
+      disabled.type = "button";
+      disabled.className = "store-download-disabled";
+      disabled.disabled = true;
+      disabled.textContent = "⚠ Ссылка на APK отсутствует";
+      disabled.title = "Сервер не передал downloadUrl";
+
+      return disabled;
+    }
+
+    const link = document.createElement("a");
+
+    link.className = "store-download-button";
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "⬇ Скачать APK";
+    link.setAttribute("aria-label", "Скачать " + (app.name || "APK"));
+
+    return link;
+  }
+
+  // Отображение каталога
   function renderCatalog() {
     const root = $("storeGrid");
     const empty = $("storeEmpty");
@@ -184,6 +316,9 @@
     }
 
     apps.forEach(app => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "store-app-row";
+
       const card = document.createElement("button");
       card.type = "button";
       card.className = "store-card";
@@ -214,12 +349,20 @@
       arrow.textContent = "›";
 
       card.append(icon, info, arrow);
-      card.addEventListener("click", () => openDetails(app));
 
-      root.appendChild(card);
+      card.addEventListener("click", () => {
+        openDetails(app);
+      });
+
+      // Отдельная кнопка прямо в каталоге
+      const downloadButton = createDownloadButton(app);
+
+      wrapper.append(card, downloadButton);
+      root.appendChild(wrapper);
     });
   }
 
+  // Подробности приложения
   function openDetails(app) {
     selectedApp = app;
 
@@ -229,60 +372,12 @@
     if (!detail || !content) return;
 
     const icon = app.category === "games" ? "🎮" : "📦";
-    const downloadUrl = getDownloadUrl(app);
-
-    const downloadButton = downloadUrl
-      ? `
-        <a
-          class="primary store-download-button"
-          href="${escapeHTML(downloadUrl)}"
-          target="_blank"
-          rel="noopener noreferrer"
-          style="
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            width:100%;
-            box-sizing:border-box;
-            padding:15px 20px;
-            margin:20px 0;
-            border-radius:12px;
-            background:#7657ed;
-            color:#ffffff;
-            font-size:16px;
-            font-weight:700;
-            text-decoration:none;
-            cursor:pointer;
-          "
-        >
-          ⬇ Скачать APK
-        </a>
-      `
-      : `
-        <button
-          type="button"
-          disabled
-          style="
-            display:block;
-            width:100%;
-            padding:15px;
-            margin:20px 0;
-            border:0;
-            border-radius:12px;
-            background:#555;
-            color:#ddd;
-            font-size:16px;
-            font-weight:700;
-            opacity:0.7;
-          "
-        >
-          Ссылка на скачивание отсутствует
-        </button>
-      `;
+    const downloadButton = createDownloadButton(app);
 
     content.innerHTML = `
       <div class="detail-hero">
         <div class="store-app-icon large">${icon}</div>
+
         <div>
           <h1>${escapeHTML(app.name || "Без названия")}</h1>
           <p>Версия ${escapeHTML(app.version || "latest")}</p>
@@ -305,7 +400,7 @@
         <b>${escapeHTML(app.repository || "Не указан")}</b>
       </div>
 
-      ${downloadButton}
+      <div id="storeDetailDownload"></div>
 
       <p class="detail-note">
         Скачивай APK только из источников, которым доверяешь.
@@ -320,9 +415,16 @@
       </button>
     `;
 
+    const downloadContainer = $("storeDetailDownload");
+
+    if (downloadContainer) {
+      downloadContainer.appendChild(downloadButton);
+    }
+
     detail.hidden = false;
 
     const back = $("storeDetailBack");
+
     if (back) {
       back.addEventListener("click", closeDetails);
     }
@@ -338,6 +440,7 @@
     selectedApp = null;
   }
 
+  // Переключение вкладок
   function showTab(tab) {
     activeTab = tab;
 
@@ -345,10 +448,17 @@
     const myAppsPage = $("storeMyAppsPage");
     const detail = $("storeDetail");
 
-    if (catalogPage) catalogPage.hidden = tab !== "store";
-    if (myAppsPage) myAppsPage.hidden = tab !== "apps";
+    if (catalogPage) {
+      catalogPage.hidden = tab !== "store";
+    }
 
-    if (detail) detail.hidden = true;
+    if (myAppsPage) {
+      myAppsPage.hidden = tab !== "apps";
+    }
+
+    if (detail) {
+      detail.hidden = true;
+    }
 
     document.querySelectorAll("[data-store-main]").forEach(button => {
       button.classList.toggle(
@@ -362,22 +472,27 @@
     }
   }
 
+  // Получение локальных игр
   function getLocalGames() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
+
       if (!raw) return [];
 
       const data = JSON.parse(raw);
 
       return Array.isArray(data.games) ? data.games : [];
+
     } catch (error) {
       console.warn("Не удалось прочитать библиотеку игр:", error);
       return [];
     }
   }
 
+  // Моя библиотека
   function renderMyApps() {
     const root = $("storeMyAppsList");
+
     if (!root) return;
 
     root.innerHTML = "";
@@ -408,7 +523,8 @@
       name.textContent = game.name || "Без названия";
 
       const packageId = document.createElement("small");
-      packageId.textContent = game.packageId || "Package ID не указан";
+      packageId.textContent =
+        game.packageId || "Package ID не указан";
 
       meta.append(name, packageId);
       card.append(icon, meta);
@@ -417,6 +533,7 @@
     });
   }
 
+  // Обработчики
   function setupEvents() {
     document.querySelectorAll("[data-store-main]").forEach(button => {
       button.addEventListener("click", () => {
@@ -452,9 +569,11 @@
     });
   }
 
+  // Запуск
   function init() {
     if (!$("storeGrid")) return;
 
+    installStoreStyles();
     setupEvents();
     loadCatalog();
   }
