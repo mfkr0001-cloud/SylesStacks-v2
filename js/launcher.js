@@ -10,7 +10,7 @@
     const apps = window.SylesStacksInstalledApps || [];
 
     const games = apps
-      .filter(app => app && app.isGame && app.packageName)
+      .filter(app => app && app.packageName)
       .sort((a, b) => a.name.localeCompare(b.name, 'ru'));
 
     games.forEach(app => {
@@ -46,7 +46,7 @@
     if (hint) {
       hint.textContent = games.length
         ? 'Нажми на значок, чтобы запустить игру'
-        : 'Установленные игры появятся здесь автоматически';
+        : 'Установленные приложения появятся здесь автоматически';
     }
   }
 
