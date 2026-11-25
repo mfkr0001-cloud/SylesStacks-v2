@@ -1,16 +1,21 @@
 package com.sylesstacks.mobile
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.PowerManager
 import android.provider.Settings
 import android.webkit.DownloadListener
 import android.webkit.JavascriptInterface
@@ -88,9 +93,7 @@ class MainActivity : Activity() {
                 }
 
                 return try {
-                    startActivity(
-                        Intent(Intent.ACTION_VIEW, url)
-                    )
+                    startActivity(Intent(Intent.ACTION_VIEW, url))
                     true
                 } catch (_: Exception) {
                     false
@@ -122,10 +125,7 @@ class MainActivity : Activity() {
                             type = "*/*"
                         }
 
-                    startActivityForResult(
-                        intent,
-                        FILE_PICKER_REQUEST
-                    )
+                    startActivityForResult(intent, FILE_PICKER_REQUEST)
                     true
                 } catch (_: Exception) {
                     fileCallback?.onReceiveValue(null)
@@ -137,11 +137,8 @@ class MainActivity : Activity() {
 
         webView.setDownloadListener(
             DownloadListener { url, _, contentDisposition, mimeType, _ ->
-
                 try {
-                    val request = DownloadManager.Request(
-                        Uri.parse(url)
-                    )
+                    val request = DownloadManager.Request(Uri.parse(url))
 
                     request.setMimeType(mimeType)
                     request.setTitle(
@@ -166,7 +163,6 @@ class MainActivity : Activity() {
                         "Загрузка началась",
                         Toast.LENGTH_SHORT
                     ).show()
-
                 } catch (_: Exception) {
                     Toast.makeText(
                         this,
@@ -187,19 +183,14 @@ class MainActivity : Activity() {
             val intent = Intent(Intent.ACTION_MAIN)
                 .addCategory(Intent.CATEGORY_LAUNCHER)
 
-            val activities = packageManager.queryIntentActivities(
-                intent,
-                0
-            )
-
+            val activities = packageManager.queryIntentActivities(intent, 0)
             val ownPackage = packageName
 
             val sorted = activities
                 .filter { it.activityInfo.packageName != ownPackage }
                 .distinctBy { it.activityInfo.packageName }
                 .sortedBy {
-                    it.loadLabel(packageManager).toString()
-                        .lowercase()
+                    it.loadLabel(packageManager).toString().lowercase()
                 }
 
             for (info in sorted) {
@@ -214,7 +205,7 @@ class MainActivity : Activity() {
                                 packageManager.getApplicationInfo(appPackage, 0)
 
                             applicationInfo.category ==
-                                android.content.pm.ApplicationInfo.CATEGORY_GAME
+                                ApplicationInfo.CATEGORY_GAME
                         } catch (_: Exception) {
                             false
                         }
@@ -241,16 +232,15 @@ class MainActivity : Activity() {
                     Base64.NO_WRAP
                 )
 
-                val item = JSONObject().apply {
-                    put("name", appName)
-                    put("packageName", appPackage)
-                    put("icon", "data:image/png;base64,$base64")
-                    put("isGame", isGame)
-                }
-
-                apps.put(item)
+                apps.put(
+                    JSONObject().apply {
+                        put("name", appName)
+                        put("packageName", appPackage)
+                        put("icon", "data:image/png;base64,$base64")
+                        put("isGame", isGame)
+                    }
+                )
             }
-
         } catch (_: Exception) {
         }
 
@@ -261,7 +251,9 @@ class MainActivity : Activity() {
                 "if(window.SylesStacksRefreshApps){" +
                 "window.SylesStacksRefreshApps();" +
                 "}"
-        , null)
+            ,
+            null
+        )
     }
 
     private fun drawableToBitmap(drawable: Drawable): Bitmap {
@@ -275,11 +267,24 @@ class MainActivity : Activity() {
         )
 
         val canvas = Canvas(bitmap)
-
         drawable.setBounds(0, 0, width, height)
         drawable.draw(canvas)
 
         return bitmap
+    }
+
+    private fun openSystemScreen(intent: Intent, errorMessage: String) {
+        runOnUiThread {
+            try {
+                startActivity(intent)
+            } catch (_: Exception) {
+                Toast.makeText(
+                    this,
+                    errorMessage,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     inner class AndroidBridge {
@@ -287,10 +292,7 @@ class MainActivity : Activity() {
         @JavascriptInterface
         fun launchPackage(packageName: String) {
             runOnUiThread {
-                if (!packageName.matches(
-                        Regex("[a-zA-Z0-9_.]+")
-                    )
-                ) {
+                if (!packageName.matches(Regex("[a-zA-Z0-9_.]+"))) {
                     return@runOnUiThread
                 }
 
@@ -307,7 +309,6 @@ class MainActivity : Activity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-
                 } catch (_: Exception) {
                     Toast.makeText(
                         this@MainActivity,
@@ -320,12 +321,119 @@ class MainActivity : Activity() {
 
         @JavascriptInterface
         fun openAppSettings() {
-            runOnUiThread {
-                startActivity(
-                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.parse("package:$packageName")
-                    }
+            openPackageSettings(packageName)
+        }
+
+        @JavascriptInterface
+        fun openPackageSettings(targetPackage: String) {
+            if (!targetPackage.matches(Regex("[a-zA-Z0-9_.]+"))) {
+                return
+            }
+
+            openSystemScreen(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.parse("package:$targetPackage")
+                },
+                "Не удалось открыть настройки приложения"
+            )
+        }
+
+        @JavascriptInterface
+        fun openBatterySettings() {
+            openSystemScreen(
+                Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS),
+                "Настройки энергосбережения недоступны"
+            )
+        }
+
+        @JavascriptInterface
+        fun openDisplaySettings() {
+            openSystemScreen(
+                Intent(Settings.ACTION_DISPLAY_SETTINGS),
+                "Настройки экрана недоступны"
+            )
+        }
+
+        @JavascriptInterface
+        fun getDeviceStats(): String {
+            return try {
+                val result = JSONObject()
+
+                val activityManager =
+                    getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+
+                val memoryInfo = ActivityManager.MemoryInfo()
+                activityManager.getMemoryInfo(memoryInfo)
+
+                result.put(
+                    "totalRamMb",
+                    memoryInfo.totalMem / (1024 * 1024)
                 )
+                result.put(
+                    "availableRamMb",
+                    memoryInfo.availMem / (1024 * 1024)
+                )
+                result.put("lowMemory", memoryInfo.lowMemory)
+
+                val batteryIntent = registerReceiver(
+                    null,
+                    IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+                )
+
+                if (batteryIntent != null) {
+                    val level = batteryIntent.getIntExtra(
+                        BatteryManager.EXTRA_LEVEL,
+                        -1
+                    )
+                    val scale = batteryIntent.getIntExtra(
+                        BatteryManager.EXTRA_SCALE,
+                        -1
+                    )
+
+                    val percent =
+                        if (level >= 0 && scale > 0) {
+                            level * 100 / scale
+                        } else {
+                            -1
+                        }
+
+                    result.put("batteryPercent", percent)
+                } else {
+                    result.put("batteryPercent", -1)
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val powerManager =
+                        getSystemService(Context.POWER_SERVICE) as PowerManager
+
+                    val thermalStatus = powerManager.currentThermalStatus
+
+                    val thermalName = when (thermalStatus) {
+                        PowerManager.THERMAL_STATUS_NONE -> "Норма"
+                        PowerManager.THERMAL_STATUS_LIGHT -> "Низкая нагрузка"
+                        PowerManager.THERMAL_STATUS_MODERATE -> "Умеренная"
+                        PowerManager.THERMAL_STATUS_SEVERE -> "Высокая"
+                        PowerManager.THERMAL_STATUS_CRITICAL -> "Критическая"
+                        PowerManager.THERMAL_STATUS_EMERGENCY -> "Аварийная"
+                        PowerManager.THERMAL_STATUS_SHUTDOWN -> "Выключение"
+                        else -> "Неизвестно"
+                    }
+
+                    result.put("thermalStatus", thermalName)
+                    result.put("thermalStatusCode", thermalStatus)
+                } else {
+                    result.put("thermalStatus", "Не поддерживается Android")
+                    result.put("thermalStatusCode", -1)
+                }
+
+                result.put("androidVersion", Build.VERSION.RELEASE ?: "Unknown")
+                result.put("deviceModel", "${Build.MANUFACTURER} ${Build.MODEL}")
+
+                result.toString()
+            } catch (e: Exception) {
+                JSONObject().apply {
+                    put("error", e.message ?: "Не удалось получить данные")
+                }.toString()
             }
         }
 
@@ -343,6 +451,12 @@ class MainActivity : Activity() {
         if (::webView.isInitialized) {
             webView.postDelayed({
                 sendInstalledAppsToPage()
+                webView.evaluateJavascript(
+                    "if(window.SylesStacksOptimizerRefresh){" +
+                        "window.SylesStacksOptimizerRefresh();" +
+                        "}",
+                    null
+                )
             }, 500)
         }
     }
